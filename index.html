@@ -481,6 +481,72 @@
   .config-note strong { font-weight: 600; }
   .config-note a { color: var(--gold); }
 
+
+  /* ── FOOTER ── */
+  .landing-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .footer-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: .85rem;
+  }
+  .footer-logos a {
+    display: inline-flex;
+    align-items: center;
+    opacity: .85;
+    transition: opacity .15s;
+  }
+  .footer-logos a:hover { opacity: 1; }
+  .footer-logos img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+  .footer-logos img.eu-flag { height: 32px; }
+  .footer-project-name {
+    font-family: var(--ff-head);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: .25rem;
+  }
+  .footer-project-name em { color: var(--gold); font-style: italic; }
+  .footer-twinspace {
+    font-size: 11px;
+    font-family: var(--ff-mono);
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .footer-twinspace a { color: var(--gold); text-decoration: none; }
+  .footer-twinspace a:hover { text-decoration: underline; }
+
+  /* ── HOME BUTTON ── */
+  .home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: 12px;
+    font-family: var(--ff-mono);
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .3rem .75rem;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: color .15s, border-color .15s;
+    text-transform: uppercase;
+  }
+  .home-btn:hover { color: var(--ink); border-color: var(--ink); }
+
   @media (max-width: 560px) {
     .form-row { grid-template-columns: 1fr; }
     .sides-bar { grid-template-columns: 1fr; }
@@ -530,6 +596,24 @@
     <div class="register-actions">
       <button class="btn btn-solid" id="enter-btn" style="width:100%;justify-content:center;padding:.7rem">Enter the Arena →</button>
     </div>
+
+    <div class="landing-footer">
+      <div class="footer-logos">
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="eTwinning">
+          <img src="https://orduataturkanadolulisesi.meb.k12.tr/meb_iys_dosyalar/52/01/967554/resimler/2025_01/22233606_1logo.jpg" alt="eTwinning">
+        </a>
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="European Union">
+          <img class="eu-flag" src="https://cdn.britannica.com/66/96866-050-BBAE91CE/Flag-European-Union.jpg" alt="EU Flag">
+        </a>
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="Global Citizens of Tomorrow">
+          <img src="https://school-education.ec.europa.eu/sites/default/files/styles/esep_group_page_media/public/2025-11/whatsapp_image_2025-10-17_at_21.43.50_1_0.jpeg?itok=DqJ-objw" alt="Project Logo">
+        </a>
+      </div>
+      <div class="footer-project-name"><em>Global Citizens of Tomorrow</em></div>
+      <div class="footer-twinspace">
+        An eTwinning project · <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank">Visit the TwinSpace →</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -545,6 +629,7 @@
       <div class="masthead-tagline" id="masthead-tagline">Loading debates…</div>
     </div>
     <div class="masthead-user" id="masthead-user" style="display:none">
+      <button class="home-btn" id="home-btn" title="Go back to landing page">⌂ Home</button>
       <div class="avatar" id="user-avatar">?</div>
       <div class="avatar-info">
         <strong id="user-name-display">—</strong>
@@ -1128,6 +1213,23 @@ document.addEventListener('DOMContentLoaded', function() {
   // also allow Enter key on name field
   var nameField = document.getElementById('reg-name');
   if (nameField) nameField.addEventListener('keydown', function(e){ if(e.key==='Enter') register(); });
+  var homeBtn = document.getElementById('home-btn');
+  if (homeBtn) homeBtn.addEventListener('click', function() {
+    if (confirm('Go back to the landing page? You will need to re-enter your details.')) {
+      localStorage.removeItem('arena_user');
+      user = null;
+      selectedSide = null;
+      document.getElementById('reg-name').value = '';
+      document.getElementById('reg-country').value = '';
+      document.getElementById('opt-for').className = 'side-opt';
+      document.getElementById('opt-against').className = 'side-opt';
+      document.getElementById('reg-error').textContent = '';
+      document.getElementById('registerPage').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+      document.getElementById('main-tabs').style.display = 'none';
+      document.getElementById('masthead-user').style.display = 'none';
+    }
+  });
 });
 
 // ── START ──
