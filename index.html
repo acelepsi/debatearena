@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Arena — E-Twinning Project Debate Platform</title>
+<title>The Arena — E-Twinning Debate Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ── TOKENS ── */
@@ -528,6 +528,46 @@
   .footer-twinspace a { color: var(--gold); text-decoration: none; }
   .footer-twinspace a:hover { text-decoration: underline; }
 
+  /* ── PER-DEBATE SIDE PICKER ── */
+  .side-picker {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    text-align: center;
+  }
+  .side-picker h3 {
+    font-size: 13px; font-weight: 500; margin-bottom: .35rem;
+  }
+  .side-picker p {
+    font-size: 12px; color: var(--muted); margin-bottom: 1rem;
+  }
+  .side-picker-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .side-pick-btn {
+    padding: .85rem 1rem;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-family: var(--ff-body);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color .15s, background .15s;
+  }
+  .side-pick-btn.for-pick    { color: var(--for); }
+  .side-pick-btn.against-pick{ color: var(--against); }
+  .side-pick-btn.for-pick:hover    { border-color: var(--for); background: var(--for-lt); }
+  .side-pick-btn.against-pick:hover{ border-color: var(--against); background: var(--against-lt); }
+  .side-pick-btn .pick-icon { font-size: 1.3rem; display: block; margin-bottom: .25rem; }
+  .side-pick-btn .pick-desc { font-size: 11px; color: var(--muted); font-weight: 400; margin-top: .15rem; }
+
   /* ── HOME BUTTON ── */
   .home-btn {
     display: inline-flex;
@@ -559,7 +599,7 @@
 <div id="registerPage" class="register-page">
   <div class="register-card">
     <div class="modal-logo">The <em>Arena</em></div>
-    <div class="modal-sub">E-Twinning Project Debate Platform<br>Fill in your details to join and start debating.</div>
+    <div class="modal-sub">E-Twinning International Debate Platform<br>Fill in your details to join and start debating.</div>
 
     <label>Your full name</label>
     <input type="text" id="reg-name" placeholder="e.g. Elif Yılmaz" autocomplete="off">
@@ -576,21 +616,6 @@
       <option value="IES Rafelbunyol 🇪🇸">IES Rafelbunyol 🇪🇸</option>
       <option value="Zemgales vidusskola 🇱🇻">Zemgales vidusskola 🇱🇻</option>
     </select>
-
-    <label>Your debate side</label>
-    <p style="font-size:12px;color:var(--muted);margin-top:.15rem;margin-bottom:.5rem">Your side stays the same across all debates — think of it as your team.</p>
-    <div class="side-choice">
-      <div class="side-opt" id="opt-for" role="button" tabindex="0">
-        <div class="side-opt-icon">🟢</div>
-        <div class="side-opt-label" style="color:var(--for)">For</div>
-        <div class="side-opt-desc">I argue in favour of the motion</div>
-      </div>
-      <div class="side-opt" id="opt-against" role="button" tabindex="0">
-        <div class="side-opt-icon">🔴</div>
-        <div class="side-opt-label" style="color:var(--against)">Against</div>
-        <div class="side-opt-desc">I challenge the motion</div>
-      </div>
-    </div>
 
     <div class="error-msg" id="reg-error" style="font-size:12px;color:var(--against);margin-top:.6rem;min-height:1.2em"></div>
     <div class="register-actions">
@@ -624,7 +649,7 @@
   <!-- MASTHEAD -->
   <header class="masthead">
     <div class="masthead-left">
-      <div class="masthead-eyebrow">E-Twinning Project Debate Platform</div>
+      <div class="masthead-eyebrow">E-Twinning · International Debate Platform</div>
       <h1>The <em>Arena</em></h1>
       <div class="masthead-tagline" id="masthead-tagline">Loading debates…</div>
     </div>
@@ -634,7 +659,7 @@
       <div class="avatar-info">
         <strong id="user-name-display">—</strong>
         <span id="user-country-display">—</span>
-        <span class="side-badge" id="user-side-badge">—</span>
+
       </div>
     </div>
   </header>
@@ -835,7 +860,7 @@ const STARTER_DATA = {
 // ── STATE ──
 let db     = null;
 let user   = JSON.parse(localStorage.getItem('arena_user') || 'null');
-let selectedSide = user?.side || null;
+let debateSides = JSON.parse(localStorage.getItem('arena_sides') || '{}');
 
 // ── INIT ──
 async function init() {
@@ -887,9 +912,7 @@ function renderApp() {
     document.getElementById('user-name-display').textContent = user.name;
     document.getElementById('user-country-display').textContent = user.country;
     document.getElementById('user-avatar').textContent = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const badge = document.getElementById('user-side-badge');
-    badge.textContent = user.side === 'for' ? '\U0001f7e2 For' : '\U0001f534 Against';
-    badge.className = 'side-badge ' + user.side;
+
     document.getElementById('masthead-tagline').textContent =
       db.debates.filter(d=>d.status==='open').length + ' active motions \u00b7 debate at your own pace';
   } else {
@@ -959,6 +982,7 @@ function renderDebateDetail(id) {
   const forNames     = [...new Set(forArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
   const againstNames = [...new Set(againstArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
 
+  const mySide  = debateSides[id] || null;
   const canPost = user && d.status === 'open';
   const myArgs  = user ? args.filter(a=>a.authorId===user.id) : [];
 
@@ -1024,12 +1048,30 @@ function renderDebateDetail(id) {
       </div>
     </div>
 
-    ${canPost ? `
+    ${!user ? `<div class="config-note">Join the platform to post arguments and vote.</div>` :
+      !canPost ? '' :
+      !mySide ? `
+    <div class="side-picker" id="arg-form">
+      <h3>Choose your position on this motion</h3>
+      <p>You can take a different side for each debate — your choice locks in when you post your first argument.</p>
+      <div class="side-picker-btns">
+        <button class="side-pick-btn for-pick" onclick="pickSide(${id},'for')">
+          <span class="pick-icon">🟢</span>
+          For the motion
+          <span class="pick-desc">I argue in favour</span>
+        </button>
+        <button class="side-pick-btn against-pick" onclick="pickSide(${id},'against')">
+          <span class="pick-icon">🔴</span>
+          Against the motion
+          <span class="pick-desc">I challenge it</span>
+        </button>
+      </div>
+    </div>` : `
     <div class="argument-form" id="arg-form">
-      <h3>Post your argument <span class="side-badge ${user.side}">${user.side==='for'?'🟢 For':'🔴 Against'}</span></h3>
+      <h3>Post your argument <span class="side-badge ${mySide}">${mySide==='for'?'🟢 For':'🔴 Against'}</span></h3>
       <textarea id="new-arg-text" placeholder="Make your case clearly and logically. Reference facts, examples from your country, or what you've read. Min. 30 words."></textarea>
       <button class="btn btn-solid" onclick="submitArgument(${id})">Post argument →</button>
-    </div>` : !user ? `<div class="config-note">Join the platform to post arguments and vote.</div>` : ''}
+    </div>`}
 
     <div class="section-label">Arguments (${args.length})</div>
     <div class="arguments-list">${argsHtml}</div>
@@ -1044,17 +1086,26 @@ function toggleReply(argId) {
 }
 
 // ── ARGUMENT SUBMIT ──
+function pickSide(debateId, side) {
+  debateSides[debateId] = side;
+  localStorage.setItem('arena_sides', JSON.stringify(debateSides));
+  renderDebateDetail(debateId);
+  setTimeout(()=>{ document.getElementById('new-arg-text')?.focus(); }, 100);
+}
+
 async function submitArgument(debateId) {
   const text = document.getElementById('new-arg-text').value.trim();
   if (!text || text.split(/\s+/).length < 10) { showToast('Please write at least a few sentences.'); return; }
   const d = db.debates.find(x=>x.id===debateId);
   if (!d) return;
+  const side = debateSides[debateId];
+  if (!side) { showToast('Please choose your side first.'); return; }
   const arg = {
     id: 'arg_' + Date.now(),
     author: user.name,
     authorId: user.id,
     country: user.country,
-    side: user.side,
+    side: side,
     text,
     createdAt: new Date().toISOString(),
     replies: []
@@ -1073,10 +1124,11 @@ async function submitReply(debateId, argId) {
   const arg = d?.arguments.find(a=>a.id===argId);
   if (!arg) return;
   if (!arg.replies) arg.replies = [];
+  const replySide = debateSides[debateId] || null;
   arg.replies.push({
     author: user.name,
     authorId: user.id,
-    side: user.side,
+    side: replySide,
     country: user.country,
     text,
     createdAt: new Date().toISOString()
@@ -1150,24 +1202,16 @@ async function submitReflection() {
 }
 
 // ── REGISTER ──
-function selectSide(side) {
-  selectedSide = side;
-  document.getElementById('opt-for').className    = 'side-opt' + (side==='for'?' selected-for':'');
-  document.getElementById('opt-against').className= 'side-opt' + (side==='against'?' selected-against':'');
-}
-
 function register() {
   const name    = document.getElementById('reg-name').value.trim();
   const country = document.getElementById('reg-country').value;
   const err     = document.getElementById('reg-error');
-  if (!name)        { err.textContent = 'Please enter your name.'; return; }
-  if (!country)     { err.textContent = 'Please select your school.'; return; }
-  if (!selectedSide){ err.textContent = 'Please choose For or Against.'; return; }
+  if (!name)    { err.textContent = 'Please enter your name.'; return; }
+  if (!country) { err.textContent = 'Please select your school.'; return; }
   err.textContent = '';
   user = {
     id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     name, country,
-    side: selectedSide,
     joinedAt: new Date().toISOString()
   };
   localStorage.setItem('arena_user', JSON.stringify(user));
@@ -1204,12 +1248,8 @@ function showToast(msg) {
 
 // ── EVENT LISTENERS ──
 document.addEventListener('DOMContentLoaded', function() {
-  var optFor     = document.getElementById('opt-for');
-  var optAgainst = document.getElementById('opt-against');
-  var enterBtn   = document.getElementById('enter-btn');
-  if (optFor)     optFor.addEventListener('click',     function(){ selectSide('for'); });
-  if (optAgainst) optAgainst.addEventListener('click', function(){ selectSide('against'); });
-  if (enterBtn)   enterBtn.addEventListener('click',   function(){ register(); });
+  var enterBtn = document.getElementById('enter-btn');
+  if (enterBtn) enterBtn.addEventListener('click', function(){ register(); });
   // also allow Enter key on name field
   var nameField = document.getElementById('reg-name');
   if (nameField) nameField.addEventListener('keydown', function(e){ if(e.key==='Enter') register(); });
@@ -1217,12 +1257,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (homeBtn) homeBtn.addEventListener('click', function() {
     if (confirm('Go back to the landing page? You will need to re-enter your details.')) {
       localStorage.removeItem('arena_user');
+      localStorage.removeItem('arena_sides');
       user = null;
-      selectedSide = null;
+      debateSides = {};
       document.getElementById('reg-name').value = '';
       document.getElementById('reg-country').value = '';
-      document.getElementById('opt-for').className = 'side-opt';
-      document.getElementById('opt-against').className = 'side-opt';
+
       document.getElementById('reg-error').textContent = '';
       document.getElementById('registerPage').style.display = 'flex';
       document.getElementById('mainApp').style.display = 'none';
