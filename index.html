@@ -1239,7 +1239,7 @@ function formatTime(iso, seed) {
   const pad = d => String(d).padStart(2, '0');
   const hours   = hash % 24;
   const minutes = (hash >> 4) % 60;
-  return `${pad(day)} Jan 2025, ${pad(hours)}:${pad(minutes)}`;
+  return `${pad(day)} Jan 2026, ${pad(hours)}:${pad(minutes)}`;
 }
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
