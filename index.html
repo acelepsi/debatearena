@@ -1000,7 +1000,7 @@ function renderDebateDetail(id) {
           <div class="reply-meta">
             <span class="reply-author">${r.author}</span>
             <span class="side-badge ${r.side}" style="font-size:9px;padding:1px 6px">${r.side==='for'?'🟢 For':'🔴 Against'}</span>
-            <span class="reply-time">${formatTime(r.createdAt)}</span>
+            <span class="reply-time">${formatTime(r.createdAt, r.author + r.createdAt)}</span>
           </div>
           <div class="reply-text">${escHtml(r.text)}</div>
         </div>`).join('');
@@ -1010,7 +1010,7 @@ function renderDebateDetail(id) {
           <span class="arg-author">${a.author}</span>
           <span class="side-badge ${a.side}">${a.side==='for'?'🟢 For':'🔴 Against'}</span>
           <span class="arg-country">${a.country}</span>
-          <span class="arg-time">${formatTime(a.createdAt)}</span>
+          <span class="arg-time">${formatTime(a.createdAt, a.id)}</span>
         </div>
         <div class="arg-text">${escHtml(a.text)}</div>
         <div class="arg-actions">
@@ -1164,7 +1164,7 @@ function renderBlog() {
   }
   list.innerHTML = [...posts].reverse().map(p=>`
     <div class="blog-post">
-      <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt)}</div>
+      <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt, p.id)}</div>
       <div class="blog-post-title">On: "${p.debateTitle}"</div>
       <div class="blog-post-body">${escHtml(p.text)}</div>
       <div class="blog-post-footer">
@@ -1228,11 +1228,18 @@ function showTab(tab) {
 }
 
 // ── HELPERS ──
-function formatTime(iso) {
+function formatTime(iso, seed) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) +
-    ' ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  // Display a deterministic date within January 2025
+  // Seed is the argument/reply id so the same item always shows the same date
+  let hash = 0;
+  const str = String(seed || iso);
+  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  const day = (hash % 28) + 1; // 1–28 Jan
+  const pad = d => String(d).padStart(2, '0');
+  const hours   = hash % 24;
+  const minutes = (hash >> 4) % 60;
+  return `${pad(day)} Jan 2025, ${pad(hours)}:${pad(minutes)}`;
 }
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
