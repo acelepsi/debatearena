@@ -733,215 +733,128 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, set, onValue, get, update, remove }
+                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
 // ══════════════════════════════════════════════
-//  ⚙️  CONFIGURATION — edit these two values
+//  ⚙️  FIREBASE CONFIGURATION — paste your values here
 // ══════════════════════════════════════════════
-const JSONBIN_BIN_ID  = '69bd908ab7ec241ddc88d497';
-const JSONBIN_API_KEY = '$2a$10$Ef9taEhfhbwaBX7hAxCaM.2S6uZ/4/eMsyrUnIq1pxiKbae8TvFSO';
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCw4slOGmKy8dSKeyGEoV0SLBG7144CDI0",
+  authDomain: "the-arena-955b5.firebaseapp.com",
+  databaseURL: "https://the-arena-955b5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "the-arena-955b5",
+  storageBucket: "the-arena-955b5.firebasestorage.app",
+  messagingSenderId: "897989519915",
+  appId: "1:897989519915:web:b820de0f1479698373586e"
+
+};
 // ══════════════════════════════════════════════
 
-const BASE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
-const HEADERS  = {
-  'Content-Type': 'application/json',
-  'X-Master-Key': JSONBIN_API_KEY
-};
-
-// ── STARTER DATA (used on first run to seed the bin) ──
-const STARTER_DATA = {
-  debates: [
-    {
-      id: 1,
-      title: "Freedom of speech should have no limits online",
-      description: "Social media platforms are the modern public square. Should they be free of all content restrictions, or do some limits protect democratic society?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 2,
-      title: "Wealthier countries bear a greater responsibility to act on climate change",
-      description: "Industrialised nations have contributed most to global emissions. Should sustainability targets be applied equally, or weighted by historical impact?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 3,
-      title: "Young people should have the right to vote at 16",
-      description: "Across Europe, the voting age debate is gaining momentum. Are 16-year-olds politically mature enough to shape the future they will inherit?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 4,
-      title: "Digital privacy is more important than national security",
-      description: "Governments argue that surveillance keeps us safe. But at what cost to civil liberties, personal freedom, and the right to a private life?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 5,
-      title: "Artificial intelligence will do more harm than good in education",
-      description: "AI tools can personalise learning and reduce teacher workload — but they may also deepen inequality, enable academic dishonesty, and replace human connection in the classroom.",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 6,
-      title: "Schools should ban smartphones during school hours",
-      description: "Some countries have already introduced bans. Do phones distract and harm students, or do they provide access to information and support digital literacy?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 7,
-      title: "Online anonymity should be abolished",
-      description: "Anonymity enables harassment, misinformation, and radicalism online. But it also protects whistleblowers, dissidents, and vulnerable people. Where should the line be?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 8,
-      title: "Influencers should be held to the same standards as traditional journalists",
-      description: "Millions follow social media creators for news and opinion. Should influencers face the same fact-checking, editorial, and legal obligations as professional journalists?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 9,
-      title: "Schools should prioritise life skills over academic knowledge",
-      description: "Finance, mental health, cooking, and critical thinking rarely appear on the curriculum. Should schools fundamentally shift what they teach to prepare students for real life?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 10,
-      title: "Cancel culture is a necessary tool for social justice",
-      description: "Public shaming and boycotts have ended harmful careers and sparked important conversations. But critics argue cancel culture suppresses free speech and denies redemption.",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 11,
-      title: "Freedom of speech should include the right to offend",
-      description: "True free expression must protect views we find offensive — otherwise it protects only comfortable speech. But when does offence become harm?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 12,
-      title: "Public figures should have less privacy than ordinary citizens",
-      description: "Politicians, celebrities, and executives wield public influence. Does accepting that power mean accepting greater scrutiny of your personal life?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 13,
-      title: "Rehabilitation should be prioritised over punishment in criminal justice",
-      description: "Evidence suggests rehabilitation reduces reoffending more than harsh sentences. But does prioritising rehabilitation fail victims and undermine deterrence?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 14,
-      title: "Success is determined more by luck than hard work",
-      description: "Where you are born, to whom, and when, shapes your opportunities enormously. Does acknowledging the role of luck undermine personal responsibility, or reflect reality?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 15,
-      title: "University education is no longer worth the cost",
-      description: "With rising tuition fees and graduate debt, many question the return on investment. Is a degree still the best path to a successful career and fulfilled life?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 16,
-      title: "Celebrities are poor role models for young people",
-      description: "Young people follow celebrities more closely than ever. Do influencers and stars set harmful standards around appearance, wealth, and behaviour — or can they inspire positively?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    },
-    {
-      id: 17,
-      title: "Sports stars are overpaid",
-      description: "Top athletes earn hundreds of millions while teachers, nurses, and scientists earn a fraction. Does the market justify these salaries, or do they reflect misplaced social values?",
-      status: "open", createdAt: new Date().toISOString(), arguments: []
-    }
-  ],
-  reflections: [],
-  votes: {}
-};
+// ── DEBATE DEFINITIONS (static — edit here to add/remove motions) ──
+const DEBATES = [
+  { id:1,  title:"Freedom of speech should have no limits online",                         description:"Social media platforms are the modern public square. Should they be free of all content restrictions, or do some limits protect democratic society?",                                                                                                         status:"open" },
+  { id:2,  title:"Wealthier countries bear a greater responsibility to act on climate change", description:"Industrialised nations have contributed most to global emissions. Should sustainability targets be applied equally, or weighted by historical impact?",                                                                                                  status:"open" },
+  { id:3,  title:"Young people should have the right to vote at 16",                       description:"Across Europe, the voting age debate is gaining momentum. Are 16-year-olds politically mature enough to shape the future they will inherit?",                                                                                                              status:"open" },
+  { id:4,  title:"Digital privacy is more important than national security",               description:"Governments argue that surveillance keeps us safe. But at what cost to civil liberties, personal freedom, and the right to a private life?",                                                                                                               status:"open" },
+  { id:5,  title:"Artificial intelligence will do more harm than good in education",       description:"AI tools can personalise learning and reduce teacher workload — but they may also deepen inequality, enable academic dishonesty, and replace human connection in the classroom.",                                                                           status:"open" },
+  { id:6,  title:"Schools should ban smartphones during school hours",                     description:"Some countries have already introduced bans. Do phones distract and harm students, or do they provide access to information and support digital literacy?",                                                                                                 status:"open" },
+  { id:7,  title:"Online anonymity should be abolished",                                   description:"Anonymity enables harassment, misinformation, and radicalism online. But it also protects whistleblowers, dissidents, and vulnerable people. Where should the line be?",                                                                                   status:"open" },
+  { id:8,  title:"Influencers should be held to the same standards as traditional journalists", description:"Millions follow social media creators for news and opinion. Should influencers face the same fact-checking, editorial, and legal obligations as professional journalists?",                                                                             status:"open" },
+  { id:9,  title:"Schools should prioritise life skills over academic knowledge",          description:"Finance, mental health, cooking, and critical thinking rarely appear on the curriculum. Should schools fundamentally shift what they teach to prepare students for real life?",                                                                              status:"open" },
+  { id:10, title:"Cancel culture is a necessary tool for social justice",                  description:"Public shaming and boycotts have ended harmful careers and sparked important conversations. But critics argue cancel culture suppresses free speech and denies redemption.",                                                                                 status:"open" },
+  { id:11, title:"Freedom of speech should include the right to offend",                   description:"True free expression must protect views we find offensive — otherwise it protects only comfortable speech. But when does offence become harm?",                                                                                                             status:"open" },
+  { id:12, title:"Public figures should have less privacy than ordinary citizens",         description:"Politicians, celebrities, and executives wield public influence. Does accepting that power mean accepting greater scrutiny of your personal life?",                                                                                                         status:"open" },
+  { id:13, title:"Rehabilitation should be prioritised over punishment in criminal justice",description:"Evidence suggests rehabilitation reduces reoffending more than harsh sentences. But does prioritising rehabilitation fail victims and undermine deterrence?",                                                                                               status:"open" },
+  { id:14, title:"Success is determined more by luck than hard work",                      description:"Where you are born, to whom, and when, shapes your opportunities enormously. Does acknowledging the role of luck undermine personal responsibility, or reflect reality?",                                                                                   status:"open" },
+  { id:15, title:"University education is no longer worth the cost",                       description:"With rising tuition fees and graduate debt, many question the return on investment. Is a degree still the best path to a successful career and fulfilled life?",                                                                                           status:"open" },
+  { id:16, title:"Celebrities are poor role models for young people",                      description:"Young people follow celebrities more closely than ever. Do influencers and stars set harmful standards around appearance, wealth, and behaviour — or can they inspire positively?",                                                                         status:"open" },
+  { id:17, title:"Sports stars are overpaid",                                              description:"Top athletes earn hundreds of millions while teachers, nurses, and scientists earn a fraction. Does the market justify these salaries, or do they reflect misplaced social values?",                                                                        status:"open" },
+];
 
 // ── STATE ──
-let db     = null;
-let user   = JSON.parse(localStorage.getItem('arena_user') || 'null');
+const app = initializeApp(FIREBASE_CONFIG);
+const db  = getDatabase(app);
+
+let user       = JSON.parse(localStorage.getItem('arena_user') || 'null');
 let debateSides = JSON.parse(localStorage.getItem('arena_sides') || '{}');
+let currentDebateId = null;
+
+// Live data cache (filled by Firebase listeners)
+let argsCache        = {};   // { debateId: { fbKey: argObj } }
+let repliesCache     = {};   // { debateId: { argFbKey: { fbKey: replyObj } } }
+let votesCache       = {};   // { debateId: { argFbKey: { uid_: true } } }
+let reflectionsCache = {};   // { fbKey: reflectionObj }
+
+// ── FIREBASE REFS ──
+const argsRef        = (did)          => ref(db, `debates/${did}/arguments`);
+const repliesRef     = (did, argKey)  => ref(db, `debates/${did}/arguments/${argKey}/replies`);
+const votesRef       = (did, argKey)  => ref(db, `debates/${did}/arguments/${argKey}/votes`);
+const reflectionsRef = ()             => ref(db, 'reflections');
 
 // ── INIT ──
-async function init() {
-  const configured = JSONBIN_BIN_ID !== 'YOUR_BIN_ID_HERE';
-  if (!configured) {
-    db = structuredClone(STARTER_DATA);
-    renderApp();
-    return;
-  }
-  try {
-    const res = await fetch(BASE_URL + '/latest', { headers: HEADERS });
-    if (!res.ok) throw new Error('fetch failed');
-    const json = await res.json();
-    db = json.record;
-  } catch(e) {
-    // first run: seed the bin
-    try {
-      await fetch(BASE_URL, {
-        method: 'PUT',
-        headers: HEADERS,
-        body: JSON.stringify(STARTER_DATA)
-      });
-      db = structuredClone(STARTER_DATA);
-    } catch(e2) {
-      db = structuredClone(STARTER_DATA);
-    }
-  }
-  renderApp();
-}
-
-async function fetchLatest() {
-  try {
-    const res = await fetch(BASE_URL + '/latest', { headers: HEADERS });
-    if (!res.ok) return false;
-    const json = await res.json();
-    db = json.record;
-    return true;
-  } catch(e) { return false; }
-}
-
-async function save() {
-  if (JSONBIN_BIN_ID === 'YOUR_BIN_ID_HERE') return;
-  try {
-    await fetch(BASE_URL, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: JSON.stringify(db)
-    });
-  } catch(e) { showToast('⚠️ Could not save. Check connection.'); }
-}
-
-// ── RENDER ──
-function renderApp() {
+function init() {
   if (user) {
-    document.getElementById('registerPage').style.display = 'none';
-    document.getElementById('mainApp').style.display     = 'block';
-    document.getElementById('main-tabs').style.display   = 'flex';
-    document.getElementById('masthead-user').style.display = 'flex';
-    document.getElementById('user-name-display').textContent = user.name;
-    document.getElementById('user-country-display').textContent = user.country;
-    document.getElementById('user-avatar').textContent = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-
-    document.getElementById('masthead-tagline').textContent =
-      db.debates.filter(d=>d.status==='open').length + ' active motions \u00b7 debate at your own pace';
+    renderApp();
+    startListeners();
   } else {
     document.getElementById('registerPage').style.display = 'flex';
-    document.getElementById('mainApp').style.display     = 'none';
+    document.getElementById('mainApp').style.display = 'none';
   }
+}
+
+// ── REAL-TIME LISTENERS ──
+// One listener per debate — listens to entire debate/arguments subtree
+function startListeners() {
+  DEBATES.forEach(d => {
+    onValue(argsRef(d.id), snap => {
+      argsCache[d.id] = snap.val() || {};
+      // rebuild replies and votes caches from nested data
+      repliesCache[d.id] = {};
+      votesCache[d.id]   = {};
+      Object.entries(argsCache[d.id]).forEach(([k, v]) => {
+        repliesCache[d.id][k] = v.replies || {};
+        votesCache[d.id][k]   = v.votes   || {};
+        // strip nested keys from arg object for rendering
+        argsCache[d.id][k] = { ...v, replies: undefined, votes: undefined };
+      });
+      if (currentDebateId === d.id) renderDebateDetail(d.id);
+      renderDebates();
+    });
+  });
+
+  onValue(reflectionsRef(), snap => {
+    reflectionsCache = snap.val() || {};
+    renderBlog();
+  });
+}
+
+// ── RENDER APP ──
+function renderApp() {
+  document.getElementById('registerPage').style.display = 'none';
+  document.getElementById('mainApp').style.display      = 'block';
+  document.getElementById('main-tabs').style.display    = 'flex';
+  document.getElementById('masthead-user').style.display = 'flex';
+  document.getElementById('user-name-display').textContent    = user.name;
+  document.getElementById('user-country-display').textContent = user.country;
+  document.getElementById('user-avatar').textContent =
+    user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('masthead-tagline').textContent =
+    DEBATES.filter(d=>d.status==='open').length + ' active motions · debate at your own pace';
   renderDebates();
   renderBlog();
 }
 
-// ── DEBATES ──
+// ── RENDER DEBATES LIST ──
 function renderDebates() {
   const grid = document.getElementById('debates-grid');
-  if (!db.debates.length) { grid.innerHTML = '<div class="empty"><strong>No debates yet</strong>Check back soon.</div>'; return; }
-  grid.innerHTML = db.debates.map(d => {
-    const args = d.arguments || [];
-    const forCount     = args.filter(a=>a.side==='for').length;
-    const againstCount = args.filter(a=>a.side==='against').length;
-    const statusLabel  = d.status === 'open' ? 'Open' : d.status === 'reflection' ? 'Reflection' : 'Closed';
+  grid.innerHTML = DEBATES.map(d => {
+    const args        = Object.values(argsCache[d.id] || {});
+    const forCount    = args.filter(a=>a.side==='for').length;
+    const againstCount= args.filter(a=>a.side==='against').length;
+    const statusLabel = d.status==='open' ? 'Open' : d.status==='reflection' ? 'Reflection' : 'Closed';
     return `
     <div class="debate-card">
       <div class="debate-card-header">
@@ -960,80 +873,89 @@ function renderDebates() {
         </div>
         <div class="debate-actions">
           <button class="btn" onclick="openDebate(${d.id})">Read arguments →</button>
-          ${user && d.status === 'open' ? `<button class="btn btn-solid" onclick="openDebate(${d.id}, true)">Post argument</button>` : ''}
+          ${user && d.status==='open' ? `<button class="btn btn-solid" onclick="openDebate(${d.id}, true)">Post argument</button>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-let currentDebateId = null;
-function openDebate(id, scrollToForm) {
+// ── DEBATE DETAIL ──
+window.openDebate = function(id, scrollToForm) {
   currentDebateId = id;
-  document.getElementById('debates-list-view').style.display = 'none';
+  document.getElementById('debates-list-view').style.display  = 'none';
   document.getElementById('debate-detail-view').style.display = 'block';
   renderDebateDetail(id);
-  if (scrollToForm) setTimeout(()=>{ document.getElementById('arg-form')?.scrollIntoView({behavior:'smooth'}); }, 150);
-}
-function closeDebate() {
+  if (scrollToForm) setTimeout(()=>document.getElementById('arg-form')?.scrollIntoView({behavior:'smooth'}), 150);
+};
+
+window.closeDebate = function() {
   currentDebateId = null;
-  document.getElementById('debates-list-view').style.display = 'block';
+  document.getElementById('debates-list-view').style.display  = 'block';
   document.getElementById('debate-detail-view').style.display = 'none';
-}
+};
 
 function renderDebateDetail(id) {
-  const d = db.debates.find(x=>x.id===id);
+  const d = DEBATES.find(x=>x.id===id);
   if (!d) return;
-  const args = d.arguments || [];
+
+  const argsMap    = argsCache[id]    || {};
+  const repliesMap = repliesCache[id] || {};
+  const votesMap   = votesCache[id]   || {};
+  const args       = Object.entries(argsMap).map(([k,v]) => ({...v, _key: k}))
+                       .sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+
   const forArgs     = args.filter(a=>a.side==='for');
   const againstArgs = args.filter(a=>a.side==='against');
-  const votes = db.votes || {};
+  const forNames    = [...new Set(forArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
+  const againstNames= [...new Set(againstArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
+  const mySide      = debateSides[id] || null;
+  const canPost     = user && d.status==='open';
 
-  const forNames     = [...new Set(forArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
-  const againstNames = [...new Set(againstArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ') || '—';
-
-  const mySide  = debateSides[id] || null;
-  const canPost = user && d.status === 'open';
-  const myArgs  = user ? args.filter(a=>a.authorId===user.id) : [];
-
+  // Build arguments HTML
   let argsHtml = '';
   if (!args.length) {
     argsHtml = `<div class="empty"><strong>No arguments yet</strong>Be the first to make your case.</div>`;
   } else {
-    // interleave for/against chronologically
     argsHtml = args.map(a => {
-      const voteKey = `${user?.id}_${a.id}`;
-      const votedHere = votes[voteKey];
-      const voteCount = Object.keys(votes).filter(k=>k.endsWith('_'+a.id)).length;
-      const repliesHtml = (a.replies||[]).map(r=>`
+      const argVotes   = votesMap[a._key] || {};
+      const voteCount  = Object.keys(argVotes).length;
+      // sanitise uid for firebase key: replace forbidden chars
+      const uidKey     = user ? user.id.replace(/[.#$[\]]/g, '_') : '';
+      const votedHere  = user && !!argVotes[uidKey];
+      const argReplies = Object.values(repliesMap[a._key] || {})
+                           .sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+
+      const repliesHtml = argReplies.map(r => `
         <div class="reply-item">
           <div class="reply-meta">
             <span class="reply-author">${r.author}</span>
-            <span class="side-badge ${r.side}" style="font-size:9px;padding:1px 6px">${r.side==='for'?'🟢 For':'🔴 Against'}</span>
-            <span class="reply-time">${formatTime(r.createdAt, r.author + r.createdAt)}</span>
+            <span class="side-badge ${r.side||''}" style="font-size:9px;padding:1px 6px">${r.side==='for'?'🟢 For':'🔴 Against'}</span>
+            <span class="reply-time">${formatTime(r.createdAt, r.author+r.createdAt)}</span>
           </div>
           <div class="reply-text">${escHtml(r.text)}</div>
         </div>`).join('');
+
       return `
-      <div class="argument-item ${a.side}-arg" id="arg-${a.id}">
+      <div class="argument-item ${a.side}-arg" id="arg-${a._key}">
         <div class="arg-meta">
           <span class="arg-author">${a.author}</span>
           <span class="side-badge ${a.side}">${a.side==='for'?'🟢 For':'🔴 Against'}</span>
-          <span class="arg-country">${a.country}</span>
-          <span class="arg-time">${formatTime(a.createdAt, a.id)}</span>
+          <span class="arg-country">${a.country||''}</span>
+          <span class="arg-time">${formatTime(a.createdAt, a._key)}</span>
         </div>
         <div class="arg-text">${escHtml(a.text)}</div>
         <div class="arg-actions">
-          ${user ? `<button class="vote-btn ${votedHere?'voted':''}" onclick="vote(${id},'${a.id}')">
+          ${user ? `<button class="vote-btn ${votedHere?'voted':''}" onclick="vote(${id},'${a._key}')">
             ${votedHere?'★':'☆'} Strong argument${voteCount?' · '+voteCount:''}
           </button>` : ''}
-          ${user && d.status==='open' ? `<button class="vote-btn" onclick="toggleReply('${a.id}')">↩ Reply</button>` : ''}
+          ${canPost ? `<button class="vote-btn" onclick="toggleReply('${a._key}')">↩ Reply</button>` : ''}
         </div>
-        ${(a.replies||[]).length ? `<div class="replies">${repliesHtml}</div>` : ''}
-        ${user && d.status==='open' ? `
-        <div class="reply-form" id="reply-form-${a.id}">
-          <textarea id="reply-text-${a.id}" placeholder="Your rebuttal or response…"></textarea>
-          <button class="btn" style="font-size:12px;padding:.35rem .8rem" onclick="submitReply(${id},'${a.id}')">Post reply</button>
+        ${argReplies.length ? `<div class="replies">${repliesHtml}</div>` : ''}
+        ${canPost ? `
+        <div class="reply-form" id="reply-form-${a._key}">
+          <textarea id="reply-text-${a._key}" placeholder="Your rebuttal or response…"></textarea>
+          <button class="btn" style="font-size:12px;padding:.35rem .8rem" onclick="submitReply(${id},'${a._key}')">Post reply</button>
         </div>` : ''}
       </div>`;
     }).join('');
@@ -1066,13 +988,11 @@ function renderDebateDetail(id) {
       <p>You can take a different side for each debate — your choice locks in when you post your first argument.</p>
       <div class="side-picker-btns">
         <button class="side-pick-btn for-pick" onclick="pickSide(${id},'for')">
-          <span class="pick-icon">🟢</span>
-          For the motion
+          <span class="pick-icon">🟢</span>For the motion
           <span class="pick-desc">I argue in favour</span>
         </button>
         <button class="side-pick-btn against-pick" onclick="pickSide(${id},'against')">
-          <span class="pick-icon">🔴</span>
-          Against the motion
+          <span class="pick-icon">🔴</span>Against the motion
           <span class="pick-desc">I challenge it</span>
         </button>
       </div>
@@ -1084,139 +1004,129 @@ function renderDebateDetail(id) {
     </div>`}
 
     <div class="section-label">Arguments (${args.length})</div>
-    <div class="arguments-list">${argsHtml}</div>
-  `;
+    <div class="arguments-list">${argsHtml}</div>`;
 }
 
-function toggleReply(argId) {
-  const form = document.getElementById('reply-form-'+argId);
-  if (!form) return;
-  form.classList.toggle('open');
-  if (form.classList.contains('open')) form.querySelector('textarea').focus();
-}
-
-// ── ARGUMENT SUBMIT ──
-function pickSide(debateId, side) {
+window.pickSide = function(debateId, side) {
   debateSides[debateId] = side;
   localStorage.setItem('arena_sides', JSON.stringify(debateSides));
   renderDebateDetail(debateId);
-  setTimeout(()=>{ document.getElementById('new-arg-text')?.focus(); }, 100);
-}
+  setTimeout(()=>document.getElementById('new-arg-text')?.focus(), 100);
+};
 
-async function submitArgument(debateId) {
+window.toggleReply = function(argKey) {
+  const form = document.getElementById('reply-form-'+argKey);
+  if (!form) return;
+  form.classList.toggle('open');
+  if (form.classList.contains('open')) form.querySelector('textarea').focus();
+};
+
+// ── SUBMIT ARGUMENT ──
+// Firebase push() gives each argument a unique key — zero collision possible
+window.submitArgument = async function(debateId) {
   const text = document.getElementById('new-arg-text').value.trim();
   if (!text || text.split(/\s+/).length < 10) { showToast('Please write at least a few sentences.'); return; }
   const side = debateSides[debateId];
   if (!side) { showToast('Please choose your side first.'); return; }
-  const arg = {
-    id: 'arg_' + Date.now(),
-    author: user.name,
-    authorId: user.id,
-    country: user.country,
-    side: side,
-    text,
-    createdAt: new Date().toISOString(),
-    replies: []
-  };
   showToast('Posting…');
-  await fetchLatest();
-  const d = db.debates.find(x=>x.id===debateId);
-  if (!d) return;
-  d.arguments.push(arg);
-  await save();
-  renderDebateDetail(debateId);
-  renderDebates();
-  showToast('Argument posted ✓');
-}
+  try {
+    await push(argsRef(debateId), {
+      author:    user.name,
+      authorId:  user.id,
+      country:   user.country,
+      side,
+      text,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('new-arg-text').value = '';
+    showToast('Argument posted ✓');
+  } catch(e) {
+    showToast('⚠️ Could not post. Check connection.');
+  }
+};
 
-async function submitReply(debateId, argId) {
-  const text = document.getElementById('reply-text-'+argId)?.value.trim();
+// ── SUBMIT REPLY ──
+window.submitReply = async function(debateId, argKey) {
+  const text = document.getElementById('reply-text-'+argKey)?.value.trim();
   if (!text) return;
-  const replySide = debateSides[debateId] || null;
-  const replyData = {
-    author: user.name,
-    authorId: user.id,
-    side: replySide,
-    country: user.country,
-    text,
-    createdAt: new Date().toISOString()
-  };
+  const side = debateSides[debateId] || null;
   showToast('Posting…');
-  await fetchLatest();
-  const d   = db.debates.find(x=>x.id===debateId);
-  const arg = d?.arguments.find(a=>a.id===argId);
-  if (!arg) return;
-  if (!arg.replies) arg.replies = [];
-  arg.replies.push(replyData);
-  await save();
-  renderDebateDetail(debateId);
-  showToast('Reply posted ✓');
-}
+  try {
+    await push(repliesRef(debateId, argKey), {
+      author:    user.name,
+      authorId:  user.id,
+      country:   user.country,
+      side,
+      text,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('reply-form-'+argKey).classList.remove('open');
+    showToast('Reply posted ✓');
+  } catch(e) {
+    showToast('⚠️ Could not post. Check connection.');
+  }
+};
 
 // ── VOTE ──
-async function vote(debateId, argId) {
+window.vote = async function(debateId, argKey) {
   if (!user) return;
-  const key = `${user.id}_${argId}`;
-  await fetchLatest();
-  if (!db.votes) db.votes = {};
-  if (db.votes[key]) { delete db.votes[key]; }
-  else { db.votes[key] = true; }
-  await save();
-  renderDebateDetail(debateId);
-}
+  const uidKey = user.id.replace(/[.#$[\]]/g, '_');
+  const vRef   = ref(db, `debates/${debateId}/arguments/${argKey}/votes/${uidKey}`);
+  const snap   = await get(vRef);
+  if (snap.exists()) { await remove(vRef); }
+  else               { await set(vRef, true); }
+};
 
 // ── BLOG ──
 function renderBlog() {
-  // populate debate select
   const sel = document.getElementById('blog-debate-select');
-  if (sel) {
-    sel.innerHTML = db.debates.map(d=>`<option value="${d.id}">Motion #${d.id}: ${d.title.slice(0,50)}…</option>`).join('');
-  }
-  const list = document.getElementById('blog-posts-list');
-  const posts = db.reflections || [];
+  if (sel) sel.innerHTML = DEBATES.map(d=>`<option value="${d.id}">Motion #${d.id}: ${d.title.slice(0,50)}…</option>`).join('');
+
+  const list  = document.getElementById('blog-posts-list');
+  const posts = Object.values(reflectionsCache)
+                  .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+
   if (!posts.length) {
     list.innerHTML = `<div class="empty"><strong>No reflections yet</strong>After each debate, share what you learned.</div>`;
     return;
   }
-  list.innerHTML = [...posts].reverse().map(p=>`
+  list.innerHTML = posts.map(p => `
     <div class="blog-post">
-      <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt, p.id)}</div>
+      <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt, p.id||p.createdAt)}</div>
       <div class="blog-post-title">On: "${p.debateTitle}"</div>
       <div class="blog-post-body">${escHtml(p.text)}</div>
       <div class="blog-post-footer">
         <span>View changed: ${p.changed==='yes'?'Yes, I was persuaded':p.changed==='partly'?'Partly':'No, I hold my position'}</span>
-        <span class="side-badge ${p.side}" style="font-size:10px">${p.side==='for'?'🟢 For':'🔴 Against'}</span>
+        ${p.side ? `<span class="side-badge ${p.side}" style="font-size:10px">${p.side==='for'?'🟢 For':'🔴 Against'}</span>` : ''}
       </div>
     </div>`).join('');
 }
 
-async function submitReflection() {
+window.submitReflection = async function() {
   if (!user) { showToast('Please join first.'); return; }
-  const text   = document.getElementById('blog-text').value.trim();
-  const debId  = parseInt(document.getElementById('blog-debate-select').value);
-  const changed= document.getElementById('blog-changed').value;
+  const text    = document.getElementById('blog-text').value.trim();
+  const debId   = parseInt(document.getElementById('blog-debate-select').value);
+  const changed = document.getElementById('blog-changed').value;
   if (text.split(/\s+/).length < 40) { showToast('Please write at least 80 words.'); return; }
-  const debate = db.debates.find(d=>d.id===debId);
-  const post = {
-    id: 'post_'+Date.now(),
-    author: user.name,
-    authorId: user.id,
-    country: user.country,
-    side: user.side,
-    debateId: debId,
-    debateTitle: debate?.title || '',
-    changed,
-    text,
-    createdAt: new Date().toISOString()
-  };
-  await fetchLatest();
-  if (!db.reflections) db.reflections = [];
-  db.reflections.push(post);
-  await save();
-  document.getElementById('blog-text').value = '';
-  renderBlog();
-  showToast('Reflection published ✓');
-}
+  const debate = DEBATES.find(d=>d.id===debId);
+  try {
+    await push(reflectionsRef(), {
+      author:       user.name,
+      authorId:     user.id,
+      country:      user.country,
+      side:         debateSides[debId] || null,
+      debateId:     debId,
+      debateTitle:  debate?.title || '',
+      changed,
+      text,
+      createdAt:    new Date().toISOString()
+    });
+    document.getElementById('blog-text').value = '';
+    showToast('Reflection published ✓');
+  } catch(e) {
+    showToast('⚠️ Could not publish. Check connection.');
+  }
+};
 
 // ── REGISTER ──
 function register() {
@@ -1233,33 +1143,31 @@ function register() {
   };
   localStorage.setItem('arena_user', JSON.stringify(user));
   renderApp();
+  startListeners();
 }
 
 // ── TABS ──
-function showTab(tab) {
+window.showTab = function(tab) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
   event.target.classList.add('active');
   if (tab==='blog') renderBlog();
-}
+};
 
 // ── HELPERS ──
 function formatTime(iso, seed) {
   if (!iso) return '';
-  // Display a deterministic date within January 2025
-  // Seed is the argument/reply id so the same item always shows the same date
   let hash = 0;
   const str = String(seed || iso);
   for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
-  const day = (hash % 28) + 1; // 1–28 Jan
-  const pad = d => String(d).padStart(2, '0');
-  const hours   = hash % 24;
-  const minutes = (hash >> 4) % 60;
-  return `${pad(day)} Jan 2025, ${pad(hours)}:${pad(minutes)}`;
+  const day = (hash % 28) + 1;
+  const pad = n => String(n).padStart(2,'0');
+  return `${pad(day)} Jan 2026, ${pad(hash % 24)}:${pad((hash >> 4) % 60)}`;
 }
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>');
 }
 let toastTimer;
 function showToast(msg) {
@@ -1272,40 +1180,30 @@ function showToast(msg) {
 
 // ── EVENT LISTENERS ──
 document.addEventListener('DOMContentLoaded', function() {
-  var enterBtn = document.getElementById('enter-btn');
-  if (enterBtn) enterBtn.addEventListener('click', function(){ register(); });
-  // also allow Enter key on name field
-  var nameField = document.getElementById('reg-name');
-  if (nameField) nameField.addEventListener('keydown', function(e){ if(e.key==='Enter') register(); });
-  var homeBtn = document.getElementById('home-btn');
-  if (homeBtn) homeBtn.addEventListener('click', function() {
+  const enterBtn = document.getElementById('enter-btn');
+  if (enterBtn) enterBtn.addEventListener('click', register);
+  const nameField = document.getElementById('reg-name');
+  if (nameField) nameField.addEventListener('keydown', e => { if(e.key==='Enter') register(); });
+  const homeBtn = document.getElementById('home-btn');
+  if (homeBtn) homeBtn.addEventListener('click', () => {
     if (confirm('Go back to the landing page? You will need to re-enter your details.')) {
       localStorage.removeItem('arena_user');
       localStorage.removeItem('arena_sides');
       user = null;
       debateSides = {};
-      document.getElementById('reg-name').value = '';
+      document.getElementById('reg-name').value    = '';
       document.getElementById('reg-country').value = '';
-
       document.getElementById('reg-error').textContent = '';
       document.getElementById('registerPage').style.display = 'flex';
-      document.getElementById('mainApp').style.display = 'none';
-      document.getElementById('main-tabs').style.display = 'none';
-      document.getElementById('masthead-user').style.display = 'none';
+      document.getElementById('mainApp').style.display      = 'none';
+      document.getElementById('main-tabs').style.display    = 'none';
+      document.getElementById('masthead-user').style.display= 'none';
     }
   });
 });
 
 // ── START ──
 init();
-
-// ── AUTO-REFRESH every 12 seconds ──
-setInterval(async () => {
-  if (!user) return;
-  await fetchLatest();
-  if (currentDebateId) renderDebateDetail(currentDebateId);
-  renderDebates();
-}, 12000);
 </script>
 </body>
 </html>
