@@ -968,8 +968,7 @@ function formatTime(iso, seed) {
   const day=(hash%28)+1, pad=n=>String(n).padStart(2,'0');
   return `${pad(day)} Jan 2026, ${pad(hash%24)}:${pad((hash>>4)%60)}`;
 }
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>'); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
