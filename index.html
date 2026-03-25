@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Arena — E-Twinning Debate Platform</title>
+<title>The Arena — Erasmus+ Debate Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ── TOKENS ── */
@@ -599,10 +599,10 @@
 <div id="registerPage" class="register-page">
   <div class="register-card">
     <div class="modal-logo">The <em>Arena</em></div>
-    <div class="modal-sub">E-Twinning International Debate Platform<br>Fill in your details to join and start debating.</div>
+    <div class="modal-sub">Erasmus+ International Debate Platform<br>Fill in your details to join and start debating.</div>
 
     <label>Your full name</label>
-    <input type="text" id="reg-name" placeholder="e.g. Harry Potter" autocomplete="off">
+    <input type="text" id="reg-name" placeholder="e.g. Elif Yılmaz" autocomplete="off">
 
     <label>School</label>
     <select id="reg-country">
@@ -649,7 +649,7 @@
   <!-- MASTHEAD -->
   <header class="masthead">
     <div class="masthead-left">
-      <div class="masthead-eyebrow">E-Twinning · International Debate Platform</div>
+      <div class="masthead-eyebrow">Erasmus+ · International Debate Platform</div>
       <h1>The <em>Arena</em></h1>
       <div class="masthead-tagline" id="masthead-tagline">Loading debates…</div>
     </div>
@@ -891,6 +891,16 @@ async function init() {
   renderApp();
 }
 
+async function fetchLatest() {
+  try {
+    const res = await fetch(BASE_URL + '/latest', { headers: HEADERS });
+    if (!res.ok) return false;
+    const json = await res.json();
+    db = json.record;
+    return true;
+  } catch(e) { return false; }
+}
+
 async function save() {
   if (JSONBIN_BIN_ID === 'YOUR_BIN_ID_HERE') return;
   try {
@@ -1096,8 +1106,6 @@ function pickSide(debateId, side) {
 async function submitArgument(debateId) {
   const text = document.getElementById('new-arg-text').value.trim();
   if (!text || text.split(/\s+/).length < 10) { showToast('Please write at least a few sentences.'); return; }
-  const d = db.debates.find(x=>x.id===debateId);
-  if (!d) return;
   const side = debateSides[debateId];
   if (!side) { showToast('Please choose your side first.'); return; }
   const arg = {
@@ -1110,6 +1118,10 @@ async function submitArgument(debateId) {
     createdAt: new Date().toISOString(),
     replies: []
   };
+  showToast('Posting…');
+  await fetchLatest();
+  const d = db.debates.find(x=>x.id===debateId);
+  if (!d) return;
   d.arguments.push(arg);
   await save();
   renderDebateDetail(debateId);
@@ -1120,19 +1132,22 @@ async function submitArgument(debateId) {
 async function submitReply(debateId, argId) {
   const text = document.getElementById('reply-text-'+argId)?.value.trim();
   if (!text) return;
-  const d   = db.debates.find(x=>x.id===debateId);
-  const arg = d?.arguments.find(a=>a.id===argId);
-  if (!arg) return;
-  if (!arg.replies) arg.replies = [];
   const replySide = debateSides[debateId] || null;
-  arg.replies.push({
+  const replyData = {
     author: user.name,
     authorId: user.id,
     side: replySide,
     country: user.country,
     text,
     createdAt: new Date().toISOString()
-  });
+  };
+  showToast('Posting…');
+  await fetchLatest();
+  const d   = db.debates.find(x=>x.id===debateId);
+  const arg = d?.arguments.find(a=>a.id===argId);
+  if (!arg) return;
+  if (!arg.replies) arg.replies = [];
+  arg.replies.push(replyData);
   await save();
   renderDebateDetail(debateId);
   showToast('Reply posted ✓');
@@ -1142,6 +1157,7 @@ async function submitReply(debateId, argId) {
 async function vote(debateId, argId) {
   if (!user) return;
   const key = `${user.id}_${argId}`;
+  await fetchLatest();
   if (!db.votes) db.votes = {};
   if (db.votes[key]) { delete db.votes[key]; }
   else { db.votes[key] = true; }
@@ -1193,6 +1209,7 @@ async function submitReflection() {
     text,
     createdAt: new Date().toISOString()
   };
+  await fetchLatest();
   if (!db.reflections) db.reflections = [];
   db.reflections.push(post);
   await save();
@@ -1239,7 +1256,7 @@ function formatTime(iso, seed) {
   const pad = d => String(d).padStart(2, '0');
   const hours   = hash % 24;
   const minutes = (hash >> 4) % 60;
-  return `${pad(day)} Jan 2026, ${pad(hours)}:${pad(minutes)}`;
+  return `${pad(day)} Jan 2025, ${pad(hours)}:${pad(minutes)}`;
 }
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
@@ -1281,6 +1298,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ── START ──
 init();
+
+// ── AUTO-REFRESH every 12 seconds ──
+setInterval(async () => {
+  if (!user) return;
+  await fetchLatest();
+  if (currentDebateId) renderDebateDetail(currentDebateId);
+  renderDebates();
+}, 12000);
 </script>
 </body>
 </html>
