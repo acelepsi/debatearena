@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Arena — Erasmus+ Debate Platform</title>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ── TOKENS ── */
@@ -733,164 +736,834 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --ink:       #1a1814;
+    --paper:     #f5f2eb;
+    --cream:     #ede9df;
+    --gold:      #c9a84c;
+    --gold-lt:   #f0dfa0;
+    --for:       #1d6b47;
+    --for-lt:    #d4ede1;
+    --against:   #8b2a2a;
+    --against-lt:#f5dada;
+    --muted:     #7a7369;
+    --border:    rgba(26,24,20,0.12);
+    --radius:    6px;
+    --ff-head:   'Playfair Display', Georgia, serif;
+    --ff-body:   'DM Sans', sans-serif;
+    --ff-mono:   'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--ff-body);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .shell { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 2rem 0 1.25rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .masthead-left {}
+  .masthead-eyebrow {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .35rem;
+  }
+  .masthead h1 {
+    font-family: var(--ff-head);
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.05;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .masthead-tagline {
+    margin-top: .4rem;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .masthead-user {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: 13px;
+  }
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--ff-mono);
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .avatar-info strong { display: block; font-size: 13px; font-weight: 500; }
+  .avatar-info span { font-size: 11px; color: var(--muted); }
+  .side-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .side-badge.for    { background: var(--for-lt);     color: var(--for); }
+  .side-badge.against{ background: var(--against-lt); color: var(--against); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .55rem 1.1rem;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    font-family: var(--ff-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-solid { background: var(--ink); color: var(--paper); }
+  .btn-solid:hover { background: #333; }
+  .btn-gold  { border-color: var(--gold); color: var(--gold); }
+  .btn-gold:hover { background: var(--gold); color: var(--ink); }
+  .btn-for   { border-color: var(--for); color: var(--for); }
+  .btn-for:hover { background: var(--for); color: #fff; }
+  .btn-against { border-color: var(--against); color: var(--against); }
+  .btn-against:hover { background: var(--against); color: #fff; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:disabled:hover { background: transparent; color: var(--ink); }
+
+  /* ── SECTION HEADERS ── */
+  .section-label {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    padding-bottom: .4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── NAV TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1.5px solid var(--ink);
+    margin-bottom: 2rem;
+  }
+  .tab {
+    padding: .6rem 1.25rem;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: var(--ff-body);
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1.5px;
+    transition: color .15s;
+  }
+  .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .tab:hover { color: var(--ink); }
+
+  /* ── PAGE ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── DEBATE CARDS ── */
+  .debates-grid { display: flex; flex-direction: column; gap: 1.25rem; }
+  .debate-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .debate-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+  .debate-card-header {
+    padding: 1.25rem 1.5rem .9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .debate-num {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: .25rem;
+    letter-spacing: .1em;
+  }
+  .debate-title {
+    font-family: var(--ff-head);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .debate-status {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-family: var(--ff-mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .debate-status.open { border-color: var(--for); color: var(--for); background: var(--for-lt); }
+  .debate-status.reflection { border-color: var(--gold); color: #9a6e00; background: var(--gold-lt); }
+  .debate-body { padding: .1rem 1.5rem 1.25rem; }
+  .debate-desc { font-size: 13.5px; color: var(--muted); margin-bottom: 1rem; line-height: 1.55; }
+  .debate-meta {
+    display: flex; gap: 1.5rem; font-size: 12px; color: var(--muted);
+    font-family: var(--ff-mono);
+    margin-bottom: 1rem;
+  }
+  .debate-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+  /* ── ARGUMENT THREAD ── */
+  .debate-detail { display: none; }
+  .debate-detail.active { display: block; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: 12px; font-family: var(--ff-mono);
+    color: var(--muted); cursor: pointer;
+    background: none; border: none;
+    letter-spacing: .05em;
+    margin-bottom: 1.5rem;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--ink); }
+
+  .debate-detail-header {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-motion {
+    font-family: var(--ff-head);
+    font-size: clamp(1.2rem, 3vw, 1.7rem);
+    font-weight: 700;
+    margin-bottom: .5rem;
+    line-height: 1.2;
+  }
+
+  /* sides summary */
+  .sides-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    margin: 1.25rem 0;
+  }
+  .side-col {
+    padding: .9rem 1rem;
+    border-radius: var(--radius);
+  }
+  .side-col.for-col    { background: var(--for-lt); border-left: 3px solid var(--for); }
+  .side-col.against-col{ background: var(--against-lt); border-left: 3px solid var(--against); }
+  .side-col-label {
+    font-family: var(--ff-mono);
+    font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: .25rem;
+  }
+  .side-col.for-col .side-col-label    { color: var(--for); }
+  .side-col.against-col .side-col-label{ color: var(--against); }
+  .side-col-count { font-size: 22px; font-weight: 700; font-family: var(--ff-head); }
+  .side-col-names { font-size: 11px; color: var(--muted); margin-top: .2rem; }
+
+  /* argument form */
+  .argument-form {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .argument-form h3 {
+    font-size: 13px; font-weight: 500; margin-bottom: .75rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: .65rem .85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: white;
+    font-family: var(--ff-body);
+    font-size: 14px;
+    resize: vertical;
+    color: var(--ink);
+    margin-bottom: .75rem;
+    transition: border-color .15s;
+  }
+  textarea:focus { outline: none; border-color: var(--ink); }
+
+  /* argument list */
+  .arguments-list { display: flex; flex-direction: column; gap: .85rem; }
+  .argument-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    border-left: 3px solid transparent;
+    transition: box-shadow .15s;
+  }
+  .argument-item:hover { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+  .argument-item.for-arg    { border-left-color: var(--for); }
+  .argument-item.against-arg{ border-left-color: var(--against); }
+  .arg-meta {
+    display: flex; align-items: center; gap: .6rem;
+    margin-bottom: .5rem; flex-wrap: wrap;
+  }
+  .arg-author { font-weight: 500; font-size: 13px; }
+  .arg-country { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); }
+  .arg-time { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); margin-left: auto; }
+  .arg-text { font-size: 14px; line-height: 1.6; margin-bottom: .75rem; }
+  .arg-actions { display: flex; align-items: center; gap: .75rem; }
+  .vote-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: 12px; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    font-family: var(--ff-body);
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background .12s, color .12s;
+  }
+  .vote-btn:hover { background: var(--cream); color: var(--ink); }
+  .vote-btn.voted { color: var(--gold); font-weight: 500; }
+  .reply-form {
+    margin-top: .85rem;
+    padding-top: .85rem;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .reply-form.open { display: block; }
+  .reply-form textarea { min-height: 72px; margin-bottom: .5rem; }
+
+  /* replies */
+  .replies { margin-top: .75rem; padding-left: 1rem; border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: .65rem; }
+  .reply-item { font-size: 13px; }
+  .reply-meta { display: flex; gap: .5rem; align-items: center; margin-bottom: .2rem; }
+  .reply-author { font-weight: 500; font-size: 12px; }
+  .reply-time { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); }
+  .reply-text { color: var(--ink); line-height: 1.5; }
+
+  /* empty state */
+  .empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--muted);
+    font-size: 14px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+  .empty strong { display: block; font-size: 1rem; color: var(--ink); margin-bottom: .35rem; }
+
+  /* ── BLOG PAGE ── */
+  .blog-form {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .blog-form h3 { font-family: var(--ff-head); font-size: 1.1rem; margin-bottom: .35rem; }
+  .blog-form p  { font-size: 13px; color: var(--muted); margin-bottom: 1rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+  input[type=text], select {
+    width: 100%;
+    padding: .55rem .85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--ff-body);
+    font-size: 13.5px;
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color .15s;
+  }
+  input[type=text]:focus, select:focus { outline: none; border-color: var(--ink); }
+  .blog-posts { display: flex; flex-direction: column; gap: 1rem; }
+  .blog-post {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    border-left: 3px solid var(--gold);
+  }
+  .blog-post-meta { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); margin-bottom: .4rem; }
+  .blog-post-title { font-family: var(--ff-head); font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+  .blog-post-body { font-size: 13.5px; line-height: 1.65; color: #333; }
+  .blog-post-footer { margin-top: .75rem; font-size: 11px; color: var(--muted); font-family: var(--ff-mono); display: flex; gap: 1rem; }
+
+  /* ── REGISTER PAGE ── */
+  .register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+  }
+  .register-card {
+    background: white;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--radius);
+    padding: 2.25rem 2rem;
+    width: 100%;
+    max-width: 460px;
+  }
+  .register-card .modal-logo {
+    font-family: var(--ff-head);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: .25rem;
+  }
+  .register-card .modal-logo em { color: var(--gold); font-style: italic; }
+  .register-card .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.5; }
+  .register-card label { display: block; font-size: 12px; font-weight: 500; margin-bottom: .35rem; margin-top: 1rem; letter-spacing: .03em; text-transform: uppercase; }
+  .side-choice { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .5rem; }
+  .side-opt {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    text-align: center;
+    user-select: none;
+  }
+  .side-opt:hover { border-color: var(--ink); background: var(--cream); }
+  .side-opt.selected-for    { border-color: var(--for) !important; background: var(--for-lt) !important; }
+  .side-opt.selected-against{ border-color: var(--against) !important; background: var(--against-lt) !important; }
+  .side-opt-icon { font-size: 1.5rem; margin-bottom: .3rem; }
+  .side-opt-label { font-size: 13px; font-weight: 500; }
+  .side-opt-desc { font-size: 11px; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+  .register-actions { margin-top: 1.75rem; }
+  .error-msg { font-size: 12px; color: var(--against); margin-top: .5rem; min-height: 1.2em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: var(--ink); color: var(--paper);
+    padding: .6rem 1.1rem;
+    border-radius: var(--radius);
+    font-size: 13px;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .25s, transform .25s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: none; }
+
+  /* ── LOADING ── */
+  .loading {
+    text-align: center; padding: 3rem;
+    color: var(--muted); font-size: 13px;
+    font-family: var(--ff-mono);
+  }
+
+  /* ── UTIL ── */
+  .flex-gap { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .mt1 { margin-top: 1rem; }
+  .config-note {
+    background: var(--gold-lt);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    font-size: 12.5px;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  .config-note strong { font-weight: 600; }
+  .config-note a { color: var(--gold); }
+
+
+  /* ── FOOTER ── */
+  .landing-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .footer-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: .85rem;
+  }
+  .footer-logos a {
+    display: inline-flex;
+    align-items: center;
+    opacity: .85;
+    transition: opacity .15s;
+  }
+  .footer-logos a:hover { opacity: 1; }
+  .footer-logos img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+  .footer-logos img.eu-flag { height: 32px; }
+  .footer-project-name {
+    font-family: var(--ff-head);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: .25rem;
+  }
+  .footer-project-name em { color: var(--gold); font-style: italic; }
+  .footer-twinspace {
+    font-size: 11px;
+    font-family: var(--ff-mono);
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .footer-twinspace a { color: var(--gold); text-decoration: none; }
+  .footer-twinspace a:hover { text-decoration: underline; }
+
+  /* ── PER-DEBATE SIDE PICKER ── */
+  .side-picker {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    text-align: center;
+  }
+  .side-picker h3 {
+    font-size: 13px; font-weight: 500; margin-bottom: .35rem;
+  }
+  .side-picker p {
+    font-size: 12px; color: var(--muted); margin-bottom: 1rem;
+  }
+  .side-picker-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .side-pick-btn {
+    padding: .85rem 1rem;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-family: var(--ff-body);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color .15s, background .15s;
+  }
+  .side-pick-btn.for-pick    { color: var(--for); }
+  .side-pick-btn.against-pick{ color: var(--against); }
+  .side-pick-btn.for-pick:hover    { border-color: var(--for); background: var(--for-lt); }
+  .side-pick-btn.against-pick:hover{ border-color: var(--against); background: var(--against-lt); }
+  .side-pick-btn .pick-icon { font-size: 1.3rem; display: block; margin-bottom: .25rem; }
+  .side-pick-btn .pick-desc { font-size: 11px; color: var(--muted); font-weight: 400; margin-top: .15rem; }
+
+  /* ── HOME BUTTON ── */
+  .home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: 12px;
+    font-family: var(--ff-mono);
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .3rem .75rem;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: color .15s, border-color .15s;
+    text-transform: uppercase;
+  }
+  .home-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+  @media (max-width: 560px) {
+    .form-row { grid-template-columns: 1fr; }
+    .sides-bar { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ REGISTER PAGE ══ -->
+<div id="registerPage" class="register-page">
+  <div class="register-card">
+    <div class="modal-logo">The <em>Arena</em></div>
+    <div class="modal-sub">Erasmus+ International Debate Platform<br>Fill in your details to join and start debating.</div>
+
+    <label>Your full name</label>
+    <input type="text" id="reg-name" placeholder="e.g. Elif Yılmaz" autocomplete="off">
+
+    <label>School</label>
+    <select id="reg-country">
+      <option value="">— select your school —</option>
+      <option value="Lüleburgaz Atatürk Anadolu Lisesi 🇹🇷">Lüleburgaz Atatürk Anadolu Lisesi 🇹🇷</option>
+      <option value="Arsuz Ayla Naci Uyar Anadolu Lisesi 🇹🇷">Arsuz Ayla Naci Uyar Anadolu Lisesi 🇹🇷</option>
+      <option value="Denizli Aydem Fen Lisesi 🇹🇷">Denizli Aydem Fen Lisesi 🇹🇷</option>
+      <option value="ΓΕ.Λ. ΑΡΚΑΛΟΧΩΡΙΟΥ 🇬🇷">ΓΕ.Λ. ΑΡΚΑΛΟΧΩΡΙΟΥ 🇬🇷</option>
+      <option value="11ο ΗΜΕΡΗΣΙΟ ΓΥΜΝΑΣΙΟ ΑΧΑΡΝΩΝ 🇬🇷">11ο ΗΜΕΡΗΣΙΟ ΓΥΜΝΑΣΙΟ ΑΧΑΡΝΩΝ 🇬🇷</option>
+      <option value="7ο ΓΕΛ ΚΑΛΑΜΑΡΙΑΣ 🇬🇷">7ο ΓΕΛ ΚΑΛΑΜΑΡΙΑΣ 🇬🇷</option>
+      <option value="IES Rafelbunyol 🇪🇸">IES Rafelbunyol 🇪🇸</option>
+      <option value="Zemgales vidusskola 🇱🇻">Zemgales vidusskola 🇱🇻</option>
+    </select>
+
+    <div class="error-msg" id="reg-error" style="font-size:12px;color:var(--against);margin-top:.6rem;min-height:1.2em"></div>
+    <div class="register-actions">
+      <button class="btn btn-solid" id="enter-btn" style="width:100%;justify-content:center;padding:.7rem">Enter the Arena →</button>
+    </div>
+
+    <div class="landing-footer">
+      <div class="footer-logos">
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="eTwinning">
+          <img src="https://orduataturkanadolulisesi.meb.k12.tr/meb_iys_dosyalar/52/01/967554/resimler/2025_01/22233606_1logo.jpg" alt="eTwinning">
+        </a>
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="European Union">
+          <img class="eu-flag" src="https://cdn.britannica.com/66/96866-050-BBAE91CE/Flag-European-Union.jpg" alt="EU Flag">
+        </a>
+        <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank" title="Global Citizens of Tomorrow">
+          <img src="https://school-education.ec.europa.eu/sites/default/files/styles/esep_group_page_media/public/2025-11/whatsapp_image_2025-10-17_at_21.43.50_1_0.jpeg?itok=DqJ-objw" alt="Project Logo">
+        </a>
+      </div>
+      <div class="footer-project-name"><em>Global Citizens of Tomorrow</em></div>
+      <div class="footer-twinspace">
+        An eTwinning project · <a href="https://school-education.ec.europa.eu/en/etwinning/projects/global-citizens-tomorrow/twinspace" target="_blank">Visit the TwinSpace →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="mainApp" style="display:none">
+<div class="shell">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead-left">
+      <div class="masthead-eyebrow">Erasmus+ · International Debate Platform</div>
+      <h1>The <em>Arena</em></h1>
+      <div class="masthead-tagline" id="masthead-tagline">Loading debates…</div>
+    </div>
+    <div class="masthead-user" id="masthead-user" style="display:none">
+      <button class="home-btn" id="home-btn" title="Go back to landing page">⌂ Home</button>
+      <div class="avatar" id="user-avatar">?</div>
+      <div class="avatar-info">
+        <strong id="user-name-display">—</strong>
+        <span id="user-country-display">—</span>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabs" id="main-tabs" style="display:none">
+    <button class="tab active" onclick="showTab('debates')">Debates</button>
+    <button class="tab" onclick="showTab('blog')">Reflections</button>
+  </nav>
+
+  <!-- CONFIG NOTE (shown if not configured) -->
+  <div class="config-note" id="config-note" style="display:none">
+    <strong>⚙️ Setup needed:</strong> Open this file in a text editor and set your <code>JSONBIN_BIN_ID</code> and <code>JSONBIN_API_KEY</code> at the top of the script. 
+    Create a free bin at <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> — paste the starter JSON, copy the Bin ID and Master Key. Takes 2 minutes.
+  </div>
+
+  <!-- DEBATES PAGE -->
+  <div class="page active" id="page-debates">
+
+    <!-- debate list -->
+    <div id="debates-list-view">
+      <div class="section-label">Active Motions</div>
+      <div class="debates-grid" id="debates-grid">
+        <div class="loading">Loading debates…</div>
+      </div>
+    </div>
+
+    <!-- debate detail -->
+    <div id="debate-detail-view" style="display:none">
+      <button class="back-btn" onclick="closeDebate()">← Back to all motions</button>
+      <div id="debate-detail-content"></div>
+    </div>
+
+  </div>
+
+  <!-- BLOG PAGE -->
+  <div class="page" id="page-blog">
+
+    <div class="blog-form">
+      <h3>Write your reflection</h3>
+      <p>After a debate closes, share what you learned, how your view changed, and what surprised you about your opponents' arguments.</p>
+      <div class="form-row">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:500;margin-bottom:.3rem">Debate motion</label>
+          <select id="blog-debate-select" style="width:100%"></select>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:500;margin-bottom:.3rem">Did your view change?</label>
+          <select id="blog-changed" style="width:100%">
+            <option value="yes">Yes — I was persuaded</option>
+            <option value="partly">Partly — I see it differently now</option>
+            <option value="no">No — I hold my position</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:block;font-size:12px;font-weight:500;margin-bottom:.3rem">Your reflection (min. 80 words)</label>
+      <textarea id="blog-text" placeholder="What was the strongest argument you encountered? What would you argue differently next time? What did you learn about this topic from a European perspective?" style="min-height:130px"></textarea>
+      <button class="btn btn-solid" onclick="submitReflection()">Publish reflection →</button>
+    </div>
+
+    <div class="section-label">Published Reflections</div>
+    <div class="blog-posts" id="blog-posts-list">
+      <div class="loading">Loading reflections…</div>
+    </div>
+
+  </div>
+
+</div><!-- /shell -->
+</div><!-- /mainApp -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+
 <script>
 // ══════════════════════════════════════════════
-//  ⚙️  FIREBASE YAPILANDIRMASI
+//  ⚙️  FIREBASE CONFIGURATION
 // ══════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyBWlEXXYEfXCwiC4mkZBHtLfMjFOCMj8rs",
-  authDomain: "arenadebate-6ee0f.firebaseapp.com",
-  databaseURL: "https://arenadebate-6ee0f-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "arenadebate-6ee0f",
-  storageBucket: "arenadebate-6ee0f.firebasestorage.app",
+  apiKey:            "AIzaSyBWlEXXYEfXCwiC4mkZBHtLfMjFOCMj8rs",
+  authDomain:        "arenadebate-6ee0f.firebaseapp.com",
+  databaseURL:       "https://arenadebate-6ee0f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "arenadebate-6ee0f",
+  storageBucket:     "arenadebate-6ee0f.firebasestorage.app",
   messagingSenderId: "813851214585",
-  appId: "1:813851214585:web:0e35d6057dbda4c1801828"
+  appId:             "1:813851214585:web:0e35d6057dbda4c1801828"
 };
-
-// Firebase'i Başlat
 firebase.initializeApp(firebaseConfig);
-const firestore = firebase.firestore();
-const dbRef = firestore.collection('arena').doc('mainData');
+const rtdb = firebase.database();
+const argsRef        = (did)         => rtdb.ref('debates/' + did + '/arguments');
+const repliesRef     = (did, argKey) => rtdb.ref('debates/' + did + '/arguments/' + argKey + '/replies');
+const votesRef       = (did, argKey) => rtdb.ref('debates/' + did + '/arguments/' + argKey + '/votes');
+const reflectionsRef = ()            => rtdb.ref('reflections');
 
-// ── DEBATE DEFINITIONS ──
 const DEBATES = [
-  { id:1,  title:"Freedom of speech should have no limits online",                              description:"Social media platforms are the modern public square. Should they be free of all content restrictions, or do some limits protect democratic society?",                                                                                                        status:"open" },
-  { id:2,  title:"Wealthier countries bear a greater responsibility to act on climate change",  description:"Industrialised nations have contributed most to global emissions. Should sustainability targets be applied equally, or weighted by historical impact?",                                                                                                     status:"open" },
-  { id:3,  title:"Young people should have the right to vote at 16",                            description:"Across Europe, the voting age debate is gaining momentum. Are 16-year-olds politically mature enough to shape the future they will inherit?",                                                                                                             status:"open" },
-  { id:4,  title:"Digital privacy is more important than national security",                    description:"Governments argue that surveillance keeps us safe. But at what cost to civil liberties, personal freedom, and the right to a private life?",                                                                                                              status:"open" },
-  { id:5,  title:"Artificial intelligence will do more harm than good in education",            description:"AI tools can personalise learning and reduce teacher workload — but they may also deepen inequality, enable academic dishonesty, and replace human connection in the classroom.",                                                                          status:"open" },
-  { id:6,  title:"Schools should ban smartphones during school hours",                          description:"Some countries have already introduced bans. Do phones distract and harm students, or do they provide access to information and support digital literacy?",                                                                                                status:"open" },
-  { id:7,  title:"Online anonymity should be abolished",                                        description:"Anonymity enables harassment, misinformation, and radicalism online. But it also protects whistleblowers, dissidents, and vulnerable people. Where should the line be?",                                                                                  status:"open" },
-  { id:8,  title:"Influencers should be held to the same standards as traditional journalists", description:"Millions follow social media creators for news and opinion. Should influencers face the same fact-checking, editorial, and legal obligations as professional journalists?",                                                                                status:"open" },
-  { id:9,  title:"Schools should prioritise life skills over academic knowledge",               description:"Finance, mental health, cooking, and critical thinking rarely appear on the curriculum. Should schools fundamentally shift what they teach to prepare students for real life?",                                                                             status:"open" },
-  { id:10, title:"Cancel culture is a necessary tool for social justice",                       description:"Public shaming and boycotts have ended harmful careers and sparked important conversations. But critics argue cancel culture suppresses free speech and denies redemption.",                                                                                status:"open" },
-  { id:11, title:"Freedom of speech should include the right to offend",                        description:"True free expression must protect views we find offensive — otherwise it protects only comfortable speech. But when does offence become harm?",                                                                                                            status:"open" },
-  { id:12, title:"Public figures should have less privacy than ordinary citizens",              description:"Politicians, celebrities, and executives wield public influence. Does accepting that power mean accepting greater scrutiny of your personal life?",                                                                                                        status:"open" },
-  { id:13, title:"Rehabilitation should be prioritised over punishment in criminal justice",    description:"Evidence suggests rehabilitation reduces reoffending more than harsh sentences. But does prioritising rehabilitation fail victims and undermine deterrence?",                                                                                               status:"open" },
-  { id:14, title:"Success is determined more by luck than hard work",                           description:"Where you are born, to whom, and when, shapes your opportunities enormously. Does acknowledging the role of luck undermine personal responsibility, or reflect reality?",                                                                                  status:"open" },
-  { id:15, title:"University education is no longer worth the cost",                            description:"With rising tuition fees and graduate debt, many question the return on investment. Is a degree still the best path to a successful career and fulfilled life?",                                                                                          status:"open" },
-  { id:16, title:"Celebrities are poor role models for young people",                           description:"Young people follow celebrities more closely than ever. Do influencers and stars set harmful standards around appearance, wealth, and behaviour — or can they inspire positively?",                                                                        status:"open" },
-  { id:17, title:"Sports stars are overpaid",                                                   description:"Top athletes earn hundreds of millions while teachers, nurses, and scientists earn a fraction. Does the market justify these salaries, or do they reflect misplaced social values?",                                                                       status:"open" },
+  { id:1,  title:"Freedom of speech should have no limits online", description:"Social media platforms are the modern public square. Should they be free of all content restrictions, or do some limits protect democratic society?", status:"open" },
+  { id:2,  title:"Wealthier countries bear a greater responsibility to act on climate change", description:"Industrialised nations have contributed most to global emissions. Should sustainability targets be applied equally, or weighted by historical impact?", status:"open" },
+  { id:3,  title:"Young people should have the right to vote at 16", description:"Across Europe, the voting age debate is gaining momentum. Are 16-year-olds politically mature enough to shape the future they will inherit?", status:"open" },
+  { id:4,  title:"Digital privacy is more important than national security", description:"Governments argue that surveillance keeps us safe. But at what cost to civil liberties, personal freedom, and the right to a private life?", status:"open" },
+  { id:5,  title:"Artificial intelligence will do more harm than good in education", description:"AI tools can personalise learning and reduce teacher workload — but they may also deepen inequality, enable academic dishonesty, and replace human connection in the classroom.", status:"open" },
+  { id:6,  title:"Schools should ban smartphones during school hours", description:"Some countries have already introduced bans. Do phones distract and harm students, or do they provide access to information and support digital literacy?", status:"open" },
+  { id:7,  title:"Online anonymity should be abolished", description:"Anonymity enables harassment, misinformation, and radicalism online. But it also protects whistleblowers, dissidents, and vulnerable people. Where should the line be?", status:"open" },
+  { id:8,  title:"Influencers should be held to the same standards as traditional journalists", description:"Millions follow social media creators for news and opinion. Should influencers face the same fact-checking, editorial, and legal obligations as professional journalists?", status:"open" },
+  { id:9,  title:"Schools should prioritise life skills over academic knowledge", description:"Finance, mental health, cooking, and critical thinking rarely appear on the curriculum. Should schools fundamentally shift what they teach to prepare students for real life?", status:"open" },
+  { id:10, title:"Cancel culture is a necessary tool for social justice", description:"Public shaming and boycotts have ended harmful careers and sparked important conversations. But critics argue cancel culture suppresses free speech and denies redemption.", status:"open" },
+  { id:11, title:"Freedom of speech should include the right to offend", description:"True free expression must protect views we find offensive — otherwise it protects only comfortable speech. But when does offence become harm?", status:"open" },
+  { id:12, title:"Public figures should have less privacy than ordinary citizens", description:"Politicians, celebrities, and executives wield public influence. Does accepting that power mean accepting greater scrutiny of your personal life?", status:"open" },
+  { id:13, title:"Rehabilitation should be prioritised over punishment in criminal justice", description:"Evidence suggests rehabilitation reduces reoffending more than harsh sentences. But does prioritising rehabilitation fail victims and undermine deterrence?", status:"open" },
+  { id:14, title:"Success is determined more by luck than hard work", description:"Where you are born, to whom, and when, shapes your opportunities enormously. Does acknowledging the role of luck undermine personal responsibility, or reflect reality?", status:"open" },
+  { id:15, title:"University education is no longer worth the cost", description:"With rising tuition fees and graduate debt, many question the return on investment. Is a degree still the best path to a successful career and fulfilled life?", status:"open" },
+  { id:16, title:"Celebrities are poor role models for young people", description:"Young people follow celebrities more closely than ever. Do influencers and stars set harmful standards around appearance, wealth, and behaviour — or can they inspire positively?", status:"open" },
+  { id:17, title:"Sports stars are overpaid", description:"Top athletes earn hundreds of millions while teachers, nurses, and scientists earn a fraction. Does the market justify these salaries, or do they reflect misplaced social values?", status:"open" },
 ];
 
-// ── STATE ──
-let db          = null;
 let user        = JSON.parse(localStorage.getItem('arena_user') || 'null');
 let debateSides = JSON.parse(localStorage.getItem('arena_sides') || '{}');
 let currentDebateId = null;
+let argsCache = {}, repliesCache = {}, votesCache = {}, reflectionsCache = {};
 
-// ══════════════════════════════════════════════
-//  GÜVENLİ YAZMA KUYRUĞU (FIREBASE TRANSACTIONS)
-// ══════════════════════════════════════════════
-async function enqueue(changeFn) {
-  try {
-    await firestore.runTransaction(async (transaction) => {
-      const freshDoc = await transaction.get(dbRef);
-      let freshDb = freshDoc.exists ? freshDoc.data() : { votes: {}, reflections: [], debates: [] };
+function init() {
+  startListeners();
+  if (user) showApp(); else showRegister();
+}
 
-      // Veri yapısı garantisi
-      if (!freshDb.votes) freshDb.votes = {};
-      if (!freshDb.reflections) freshDb.reflections = [];
-      if (!freshDb.debates) freshDb.debates = [];
-
-      // İstenen değişikliği uygula
-      changeFn(freshDb);
-      
-      // Güvenle kaydet
-      transaction.set(dbRef, freshDb);
+function startListeners() {
+  DEBATES.forEach(d => {
+    argsRef(d.id).on('value', snap => {
+      const raw = snap.val() || {};
+      argsCache[d.id] = {}; repliesCache[d.id] = {}; votesCache[d.id] = {};
+      Object.entries(raw).forEach(([k, v]) => {
+        repliesCache[d.id][k] = v.replies || {};
+        votesCache[d.id][k]   = v.votes   || {};
+        argsCache[d.id][k] = { id:k, author:v.author, authorId:v.authorId, country:v.country, side:v.side, text:v.text, createdAt:v.createdAt };
+      });
+      renderDebates();
+      if (currentDebateId === d.id) renderDebateDetail(d.id);
     });
-  } catch (e) {
-    console.error("İşlem hatası:", e);
-    showToast('⚠️ Kayıt işlemi başarısız. Lütfen tekrar deneyin.');
-  }
-}
-
-// ── INIT ──
-async function init() {
-  // Veritabanı yoksa şablon oluştur
-  const docSnap = await dbRef.get();
-  if (!docSnap.exists) {
-    await dbRef.set({ votes: {}, reflections: [], debates: [] });
-  }
-
-  // GERÇEK ZAMANLI DİNLEYİCİ
-  dbRef.onSnapshot((doc) => {
-    db = doc.data();
-    if (!db) db = { votes: {}, reflections: [], debates: [] };
-    if (!db.votes) db.votes = {};
-    if (!db.reflections) db.reflections = [];
-    if (!db.debates) db.debates = [];
-
-    renderApp();
-    if (currentDebateId) renderDebateDetail(currentDebateId);
   });
+  reflectionsRef().on('value', snap => { reflectionsCache = snap.val() || {}; renderBlog(); });
 }
 
-// ── RENDER APP ──
-function renderApp() {
-  if (user) {
-    document.getElementById('registerPage').style.display  = 'none';
-    document.getElementById('mainApp').style.display       = 'block';
-    document.getElementById('main-tabs').style.display     = 'flex';
-    document.getElementById('masthead-user').style.display = 'flex';
-    document.getElementById('user-name-display').textContent    = user.name;
-    document.getElementById('user-country-display').textContent = user.country;
-    document.getElementById('user-avatar').textContent =
-      user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('masthead-tagline').textContent =
-      DEBATES.filter(d=>d.status==='open').length + ' active motions · debate at your own pace';
-  } else {
-    document.getElementById('registerPage').style.display = 'flex';
-    document.getElementById('mainApp').style.display      = 'none';
-  }
-  
-  // Eski uyarı mesajını gizle
-  const configNote = document.getElementById('config-note');
-  if (configNote) configNote.style.display = 'none';
-
-  renderDebates();
-  renderBlog();
+function showApp() {
+  document.getElementById('registerPage').style.display  = 'none';
+  document.getElementById('mainApp').style.display       = 'block';
+  document.getElementById('main-tabs').style.display     = 'flex';
+  document.getElementById('masthead-user').style.display = 'flex';
+  document.getElementById('user-name-display').textContent    = user.name;
+  document.getElementById('user-country-display').textContent = user.country;
+  document.getElementById('user-avatar').textContent = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('masthead-tagline').textContent = DEBATES.filter(d=>d.status==='open').length + ' active motions · debate at your own pace';
+  renderDebates(); renderBlog();
+}
+function showRegister() {
+  document.getElementById('registerPage').style.display = 'flex';
+  document.getElementById('mainApp').style.display      = 'none';
 }
 
-// ── DEBATES LIST ──
 function renderDebates() {
   const grid = document.getElementById('debates-grid');
-  if (!db) { grid.innerHTML = '<div class="loading">Loading…</div>'; return; }
   grid.innerHTML = DEBATES.map(d => {
-    const args         = getArgs(d.id);
-    const forCount     = args.filter(a=>a.side==='for').length;
+    const args = Object.values(argsCache[d.id] || {});
+    const forCount = args.filter(a=>a.side==='for').length;
     const againstCount = args.filter(a=>a.side==='against').length;
-    const statusLabel  = d.status==='open'?'Open':d.status==='reflection'?'Reflection':'Closed';
-    return `
-    <div class="debate-card">
-      <div class="debate-card-header">
-        <div>
-          <div class="debate-num">Motion #${d.id}</div>
-          <div class="debate-title">${d.title}</div>
-        </div>
-        <div class="debate-status ${d.status}">${statusLabel}</div>
-      </div>
-      <div class="debate-body">
-        <div class="debate-desc">${d.description}</div>
-        <div class="debate-meta">
-          <span>🟢 ${forCount} for</span>
-          <span>🔴 ${againstCount} against</span>
-          <span>💬 ${args.length} arguments</span>
-        </div>
-        <div class="debate-actions">
-          <button class="btn" onclick="openDebate(${d.id})">Read arguments →</button>
-          ${user && d.status==='open' ? `<button class="btn btn-solid" onclick="openDebate(${d.id}, true)">Post argument</button>` : ''}
-        </div>
-      </div>
-    </div>`;
+    const statusLabel = d.status==='open'?'Open':d.status==='reflection'?'Reflection':'Closed';
+    return `<div class="debate-card">
+      <div class="debate-card-header"><div><div class="debate-num">Motion #${d.id}</div><div class="debate-title">${d.title}</div></div><div class="debate-status ${d.status}">${statusLabel}</div></div>
+      <div class="debate-body"><div class="debate-desc">${d.description}</div>
+      <div class="debate-meta"><span>🟢 ${forCount} for</span><span>🔴 ${againstCount} against</span><span>💬 ${args.length} arguments</span></div>
+      <div class="debate-actions"><button class="btn" onclick="openDebate(${d.id})">Read arguments →</button>${user && d.status==='open' ? `<button class="btn btn-solid" onclick="openDebate(${d.id}, true)">Post argument</button>` : ''}</div></div></div>`;
   }).join('');
-}
-
-// ── HELPERS: get typed data from db ──
-function getArgs(debateId) {
-  if (!db) return [];
-  const d = (db.debates||[]).find(x=>x.id===debateId);
-  return d ? (d.arguments||[]) : [];
 }
 
 function openDebate(id, scrollToForm) {
@@ -906,249 +1579,129 @@ function closeDebate() {
   document.getElementById('debate-detail-view').style.display = 'none';
 }
 
-// ── DEBATE DETAIL ──
 function renderDebateDetail(id) {
   const d = DEBATES.find(x=>x.id===id);
   if (!d) return;
-  const args        = getArgs(id);
-  const votes       = (db && db.votes) ? db.votes : {};
-  const forArgs     = args.filter(a=>a.side==='for');
-  const againstArgs = args.filter(a=>a.side==='against');
-  const forNames    = [...new Set(forArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ')||'—';
-  const againstNames= [...new Set(againstArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ')||'—';
-  const mySide      = debateSides[id] || null;
-  const canPost     = user && d.status==='open';
+  const argsMap = argsCache[id] || {}, repliesMap = repliesCache[id] || {}, votesMap = votesCache[id] || {};
+  const args = Object.entries(argsMap).map(([k,v])=>({...v,_key:k})).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+  const forArgs = args.filter(a=>a.side==='for'), againstArgs = args.filter(a=>a.side==='against');
+  const forNames = [...new Set(forArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ')||'—';
+  const againstNames = [...new Set(againstArgs.map(a=>a.author.split(' ')[0]))].slice(0,5).join(', ')||'—';
+  const mySide = debateSides[id] || null, canPost = user && d.status==='open';
 
-  let argsHtml = '';
-  if (!args.length) {
-    argsHtml = `<div class="empty"><strong>No arguments yet</strong>Be the first to make your case.</div>`;
-  } else {
-    argsHtml = args.map((a, ai) => {
-      const voteKey   = user ? user.id + '_' + ai : '';
-      const voteCount = Object.keys(votes).filter(k=>k.endsWith('_'+ai+'_'+id)).length;
-      const votedHere = votes[voteKey + '_' + id];
-      const repliesHtml = (a.replies||[]).map(r=>`
-        <div class="reply-item">
-          <div class="reply-meta">
-            <span class="reply-author">${r.author}</span>
-            <span class="side-badge ${r.side||''}" style="font-size:9px;padding:1px 6px">${r.side==='for'?'🟢 For':'🔴 Against'}</span>
-            <span class="reply-time">${formatTime(r.createdAt, r.author+r.createdAt)}</span>
-          </div>
-          <div class="reply-text">${escHtml(r.text)}</div>
-        </div>`).join('');
-      return `
-      <div class="argument-item ${a.side}-arg" id="arg-${ai}">
-        <div class="arg-meta">
-          <span class="arg-author">${a.author}</span>
-          <span class="side-badge ${a.side}">${a.side==='for'?'🟢 For':'🔴 Against'}</span>
-          <span class="arg-country">${a.country||''}</span>
-          <span class="arg-time">${formatTime(a.createdAt, a.id||a.author+a.createdAt)}</span>
-        </div>
+  const argsHtml = !args.length ? `<div class="empty"><strong>No arguments yet</strong>Be the first to make your case.</div>` :
+    args.map(a => {
+      const argVotes = votesMap[a._key]||{}, voteCount = Object.keys(argVotes).length;
+      const uidKey = user ? user.id.replace(/[.#$[\]]/g,'_') : '', votedHere = user && !!argVotes[uidKey];
+      const argReplies = Object.values(repliesMap[a._key]||{}).sort((x,y)=>(x.createdAt||'').localeCompare(y.createdAt||''));
+      const repliesHtml = argReplies.map(r=>`<div class="reply-item"><div class="reply-meta"><span class="reply-author">${r.author}</span><span class="side-badge ${r.side||''}" style="font-size:9px;padding:1px 6px">${r.side==='for'?'🟢 For':'🔴 Against'}</span><span class="reply-time">${formatTime(r.createdAt, r.author+r.createdAt)}</span></div><div class="reply-text">${escHtml(r.text)}</div></div>`).join('');
+      return `<div class="argument-item ${a.side}-arg" id="arg-${a._key}">
+        <div class="arg-meta"><span class="arg-author">${a.author}</span><span class="side-badge ${a.side}">${a.side==='for'?'🟢 For':'🔴 Against'}</span><span class="arg-country">${a.country||''}</span><span class="arg-time">${formatTime(a.createdAt, a._key)}</span></div>
         <div class="arg-text">${escHtml(a.text)}</div>
-        <div class="arg-actions">
-          ${user ? `<button class="vote-btn ${votedHere?'voted':''}" onclick="vote(${id},${ai})">
-            ${votedHere?'★':'☆'} Strong argument${voteCount?' · '+voteCount:''}
-          </button>` : ''}
-          ${canPost ? `<button class="vote-btn" onclick="toggleReply(${ai})">↩ Reply</button>` : ''}
-        </div>
-        ${(a.replies||[]).length ? `<div class="replies">${repliesHtml}</div>` : ''}
-        ${canPost ? `
-        <div class="reply-form" id="reply-form-${ai}">
-          <textarea id="reply-text-${ai}" placeholder="Your rebuttal or response…"></textarea>
-          <button class="btn" style="font-size:12px;padding:.35rem .8rem" onclick="submitReply(${id},${ai})">Post reply</button>
-        </div>` : ''}
+        <div class="arg-actions">${user?`<button class="vote-btn ${votedHere?'voted':''}" onclick="vote(${id},'${a._key}')">${votedHere?'★':'☆'} Strong argument${voteCount?' · '+voteCount:''}</button>`:''} ${canPost?`<button class="vote-btn" onclick="toggleReply('${a._key}')">↩ Reply</button>`:''}</div>
+        ${argReplies.length?`<div class="replies">${repliesHtml}</div>`:''}
+        ${canPost?`<div class="reply-form" id="reply-form-${a._key}"><textarea id="reply-text-${a._key}" placeholder="Your rebuttal or response…"></textarea><button class="btn" style="font-size:12px;padding:.35rem .8rem" onclick="submitReply(${id},'${a._key}')">Post reply</button></div>`:''}
       </div>`;
     }).join('');
-  }
 
   document.getElementById('debate-detail-content').innerHTML = `
     <div class="debate-detail-header">
-      <div class="debate-num">Motion #${d.id}</div>
-      <div class="detail-motion">${d.title}</div>
+      <div class="debate-num">Motion #${d.id}</div><div class="detail-motion">${d.title}</div>
       <div style="font-size:13.5px;color:var(--muted);margin-top:.4rem">${d.description}</div>
       <div class="sides-bar">
-        <div class="side-col for-col">
-          <div class="side-col-label">For the motion</div>
-          <div class="side-col-count">${forArgs.length}</div>
-          <div class="side-col-names">${forNames}</div>
-        </div>
-        <div class="side-col against-col">
-          <div class="side-col-label">Against the motion</div>
-          <div class="side-col-count">${againstArgs.length}</div>
-          <div class="side-col-names">${againstNames}</div>
-        </div>
+        <div class="side-col for-col"><div class="side-col-label">For the motion</div><div class="side-col-count">${forArgs.length}</div><div class="side-col-names">${forNames}</div></div>
+        <div class="side-col against-col"><div class="side-col-label">Against the motion</div><div class="side-col-count">${againstArgs.length}</div><div class="side-col-names">${againstNames}</div></div>
       </div>
     </div>
-
-    ${!user ? `<div class="config-note">Join the platform to post arguments and vote.</div>` :
-      !canPost ? '' :
-      !mySide ? `
-    <div class="side-picker" id="arg-form">
-      <h3>Choose your position on this motion</h3>
-      <p>You can take a different side for each debate — your choice locks in when you post your first argument.</p>
-      <div class="side-picker-btns">
-        <button class="side-pick-btn for-pick" onclick="pickSide(${id},'for')">
-          <span class="pick-icon">🟢</span>For the motion
-          <span class="pick-desc">I argue in favour</span>
-        </button>
-        <button class="side-pick-btn against-pick" onclick="pickSide(${id},'against')">
-          <span class="pick-icon">🔴</span>Against the motion
-          <span class="pick-desc">I challenge it</span>
-        </button>
-      </div>
-    </div>` : `
-    <div class="argument-form" id="arg-form">
-      <h3>Post your argument <span class="side-badge ${mySide}">${mySide==='for'?'🟢 For':'🔴 Against'}</span></h3>
-      <textarea id="new-arg-text" placeholder="Make your case clearly and logically. Reference facts, examples from your country, or what you've read. Min. 30 words."></textarea>
-      <button class="btn btn-solid" onclick="submitArgument(${id})">Post argument →</button>
-    </div>`}
-
+    ${!user?`<div class="config-note">Join the platform to post arguments and vote.</div>`:!canPost?'':!mySide?`
+    <div class="side-picker" id="arg-form"><h3>Choose your position on this motion</h3><p>You can take a different side for each debate — your choice locks in when you post your first argument.</p>
+    <div class="side-picker-btns">
+      <button class="side-pick-btn for-pick" onclick="pickSide(${id},'for')"><span class="pick-icon">🟢</span>For the motion<span class="pick-desc">I argue in favour</span></button>
+      <button class="side-pick-btn against-pick" onclick="pickSide(${id},'against')"><span class="pick-icon">🔴</span>Against the motion<span class="pick-desc">I challenge it</span></button>
+    </div></div>`:`
+    <div class="argument-form" id="arg-form"><h3>Post your argument <span class="side-badge ${mySide}">${mySide==='for'?'🟢 For':'🔴 Against'}</span></h3>
+    <textarea id="new-arg-text" placeholder="Make your case clearly and logically. Reference facts, examples from your country, or what you've read. Min. 30 words."></textarea>
+    <button class="btn btn-solid" onclick="submitArgument(${id})">Post argument →</button></div>`}
     <div class="section-label">Arguments (${args.length})</div>
     <div class="arguments-list">${argsHtml}</div>`;
 }
 
 function pickSide(debateId, side) {
-  debateSides[debateId] = side;
-  localStorage.setItem('arena_sides', JSON.stringify(debateSides));
-  renderDebateDetail(debateId);
-  setTimeout(()=>document.getElementById('new-arg-text')?.focus(), 100);
+  debateSides[debateId] = side; localStorage.setItem('arena_sides', JSON.stringify(debateSides));
+  renderDebateDetail(debateId); setTimeout(()=>document.getElementById('new-arg-text')?.focus(), 100);
 }
-function toggleReply(ai) {
-  const form = document.getElementById('reply-form-'+ai);
-  if (!form) return;
-  form.classList.toggle('open');
-  if (form.classList.contains('open')) form.querySelector('textarea').focus();
+function toggleReply(argKey) {
+  const form = document.getElementById('reply-form-'+argKey); if (!form) return;
+  form.classList.toggle('open'); if (form.classList.contains('open')) form.querySelector('textarea').focus();
 }
 
-// ── SUBMIT ARGUMENT ──
 async function submitArgument(debateId) {
   const text = document.getElementById('new-arg-text').value.trim();
   if (!text || text.split(/\s+/).length < 10) { showToast('Please write at least a few sentences.'); return; }
-  const side = debateSides[debateId];
-  if (!side) { showToast('Please choose your side first.'); return; }
-  const arg = {
-    id:        'a' + Date.now() + Math.random().toString(36).slice(2,5),
-    author:    user.name,
-    authorId:  user.id,
-    country:   user.country,
-    side,
-    text,
-    createdAt: new Date().toISOString(),
-    replies:   []
-  };
-  document.getElementById('new-arg-text').value = '';
-  showToast('Queuing post…');
-  
-  await enqueue(freshDb => {
-    let d = (freshDb.debates||[]).find(x=>x.id===debateId);
-    if (!d) {
-      d = { id: debateId, arguments: [] };
-      freshDb.debates.push(d);
-    }
-    if (!d.arguments) d.arguments=[]; 
-    d.arguments.push(arg);
-  });
-  
-  showToast('Argument posted ✓');
+  const side = debateSides[debateId]; if (!side) { showToast('Please choose your side first.'); return; }
+  document.getElementById('new-arg-text').value = ''; showToast('Posting…');
+  try {
+    await argsRef(debateId).push({ author:user.name, authorId:user.id, country:user.country, side, text, createdAt:new Date().toISOString() });
+    showToast('Argument posted ✓');
+  } catch(e) { showToast('⚠️ Could not post. Check connection.'); console.error(e); }
 }
 
-// ── SUBMIT REPLY ──
-async function submitReply(debateId, argIdx) {
-  const text = document.getElementById('reply-text-'+argIdx)?.value.trim();
-  if (!text) return;
-  const side = debateSides[debateId] || null;
-  const reply = {
-    author: user.name, authorId: user.id, country: user.country,
-    side, text, createdAt: new Date().toISOString()
-  };
-  showToast('Queuing reply…');
-  
-  await enqueue(freshDb => {
-    let d = (freshDb.debates||[]).find(x=>x.id===debateId);
-    if (!d) {
-      d = { id: debateId, arguments: [] };
-      freshDb.debates.push(d);
-    }
-    const arg = d.arguments?.[argIdx];
-    if (arg) { if (!arg.replies) arg.replies=[]; arg.replies.push(reply); }
-  });
-  
-  document.getElementById('reply-form-'+argIdx).classList.remove('open');
-  showToast('Reply posted ✓');
+async function submitReply(debateId, argKey) {
+  const text = document.getElementById('reply-text-'+argKey)?.value.trim(); if (!text) return;
+  const side = debateSides[debateId] || null; showToast('Posting…');
+  try {
+    await repliesRef(debateId, argKey).push({ author:user.name, authorId:user.id, country:user.country, side, text, createdAt:new Date().toISOString() });
+    document.getElementById('reply-form-'+argKey).classList.remove('open'); showToast('Reply posted ✓');
+  } catch(e) { showToast('⚠️ Could not post. Check connection.'); }
 }
 
-// ── VOTE ──
-async function vote(debateId, argIdx) {
+async function vote(debateId, argKey) {
   if (!user) return;
-  const key = user.id + '_' + argIdx + '_' + debateId;
-  await enqueue(freshDb => {
-    if (freshDb.votes[key]) delete freshDb.votes[key];
-    else freshDb.votes[key] = true;
-  });
+  const uidKey = user.id.replace(/[.#$[\]]/g, '_');
+  const vRef = votesRef(debateId, argKey).child(uidKey);
+  const snap = await vRef.get();
+  if (snap.exists()) await vRef.remove(); else await vRef.set(true);
 }
 
-// ── BLOG ──
 function renderBlog() {
   const sel = document.getElementById('blog-debate-select');
   if (sel) sel.innerHTML = DEBATES.map(d=>`<option value="${d.id}">Motion #${d.id}: ${d.title.slice(0,50)}…</option>`).join('');
-  const list  = document.getElementById('blog-posts-list');
-  const posts = db ? (db.reflections||[]) : [];
-  if (!posts.length) {
-    list.innerHTML = `<div class="empty"><strong>No reflections yet</strong>After each debate, share what you learned.</div>`;
-    return;
-  }
-  list.innerHTML = [...posts].reverse().map(p=>`
-    <div class="blog-post">
-      <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt, p.id||p.createdAt)}</div>
-      <div class="blog-post-title">On: "${p.debateTitle}"</div>
-      <div class="blog-post-body">${escHtml(p.text)}</div>
-      <div class="blog-post-footer">
-        <span>View changed: ${p.changed==='yes'?'Yes, I was persuaded':p.changed==='partly'?'Partly':'No, I hold my position'}</span>
-        ${p.side?`<span class="side-badge ${p.side}" style="font-size:10px">${p.side==='for'?'🟢 For':'🔴 Against'}</span>`:''}
-      </div>
-    </div>`).join('');
+  const list = document.getElementById('blog-posts-list');
+  const posts = Object.values(reflectionsCache).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if (!posts.length) { list.innerHTML = `<div class="empty"><strong>No reflections yet</strong>After each debate, share what you learned.</div>`; return; }
+  list.innerHTML = posts.map(p=>`<div class="blog-post">
+    <div class="blog-post-meta">${p.author} · ${p.country} · ${formatTime(p.createdAt, p.id||p.createdAt)}</div>
+    <div class="blog-post-title">On: "${p.debateTitle}"</div>
+    <div class="blog-post-body">${escHtml(p.text)}</div>
+    <div class="blog-post-footer"><span>View changed: ${p.changed==='yes'?'Yes, I was persuaded':p.changed==='partly'?'Partly':'No, I hold my position'}</span>${p.side?`<span class="side-badge ${p.side}" style="font-size:10px">${p.side==='for'?'🟢 For':'🔴 Against'}</span>`:''}</div>
+  </div>`).join('');
 }
 
 async function submitReflection() {
   if (!user) { showToast('Please join first.'); return; }
-  const text    = document.getElementById('blog-text').value.trim();
-  const debId   = parseInt(document.getElementById('blog-debate-select').value);
+  const text = document.getElementById('blog-text').value.trim();
+  const debId = parseInt(document.getElementById('blog-debate-select').value);
   const changed = document.getElementById('blog-changed').value;
   if (text.split(/\s+/).length < 40) { showToast('Please write at least 80 words.'); return; }
-  const debate  = DEBATES.find(d=>d.id===debId);
-  const post = {
-    id: 'p'+Date.now(), author: user.name, authorId: user.id,
-    country: user.country, side: debateSides[debId]||null,
-    debateId: debId, debateTitle: debate?.title||'', changed, text,
-    createdAt: new Date().toISOString()
-  };
-  showToast('Publishing…');
-  
-  await enqueue(freshDb => {
-    freshDb.reflections.push(post);
-  });
-  
-  document.getElementById('blog-text').value = '';
-  showToast('Reflection published ✓');
+  const debate = DEBATES.find(d=>d.id===debId); showToast('Publishing…');
+  try {
+    await reflectionsRef().push({ author:user.name, authorId:user.id, country:user.country, side:debateSides[debId]||null, debateId:debId, debateTitle:debate?.title||'', changed, text, createdAt:new Date().toISOString() });
+    document.getElementById('blog-text').value = ''; showToast('Reflection published ✓');
+  } catch(e) { showToast('⚠️ Could not publish. Check connection.'); }
 }
 
-// ── REGISTER ──
 function register() {
-  const name    = document.getElementById('reg-name').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
   const country = document.getElementById('reg-country').value;
-  const err     = document.getElementById('reg-error');
+  const err = document.getElementById('reg-error');
   if (!name)    { err.textContent = 'Please enter your name.'; return; }
   if (!country) { err.textContent = 'Please select your school.'; return; }
   err.textContent = '';
-  user = {
-    id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    name, country, joinedAt: new Date().toISOString()
-  };
+  user = { id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name, country, joinedAt:new Date().toISOString() };
   localStorage.setItem('arena_user', JSON.stringify(user));
-  renderApp();
+  showApp();
 }
 
-// ── TABS ──
 function showTab(tab) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1157,53 +1710,35 @@ function showTab(tab) {
   if (tab==='blog') renderBlog();
 }
 
-// ── HELPERS ──
 function formatTime(iso, seed) {
   if (!iso) return '';
-  let hash = 0;
-  const str = String(seed || iso);
-  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
-  const day = (hash % 28) + 1;
-  const pad = n => String(n).padStart(2,'0');
-  return `${pad(day)} Jan 2026, ${pad(hash % 24)}:${pad((hash >> 4) % 60)}`;
+  let hash = 0; const str = String(seed||iso);
+  for (let i=0; i<str.length; i++) hash = (hash*31+str.charCodeAt(i))>>>0;
+  const day=(hash%28)+1, pad=n=>String(n).padStart(2,'0');
+  return `${pad(day)} Jan 2026, ${pad(hash%24)}:${pad((hash>>4)%60)}`;
 }
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>');
-}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>'); }
 let toastTimer;
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ── EVENT LISTENERS ──
 document.addEventListener('DOMContentLoaded', function() {
-  const enterBtn = document.getElementById('enter-btn');
-  if (enterBtn) enterBtn.addEventListener('click', register);
-  const nameField = document.getElementById('reg-name');
+  const enterBtn=document.getElementById('enter-btn'), nameField=document.getElementById('reg-name'), homeBtn=document.getElementById('home-btn');
+  if (enterBtn)  enterBtn.addEventListener('click', register);
   if (nameField) nameField.addEventListener('keydown', e=>{ if(e.key==='Enter') register(); });
-  const homeBtn = document.getElementById('home-btn');
-  if (homeBtn) homeBtn.addEventListener('click', () => {
+  if (homeBtn)   homeBtn.addEventListener('click', ()=>{
     if (confirm('Go back to the landing page? You will need to re-enter your details.')) {
-      localStorage.removeItem('arena_user');
-      localStorage.removeItem('arena_sides');
-      user = null; debateSides = {};
-      document.getElementById('reg-name').value    = '';
-      document.getElementById('reg-country').value = '';
-      document.getElementById('reg-error').textContent = '';
-      document.getElementById('registerPage').style.display  = 'flex';
-      document.getElementById('mainApp').style.display       = 'none';
-      document.getElementById('main-tabs').style.display     = 'none';
-      document.getElementById('masthead-user').style.display = 'none';
+      localStorage.removeItem('arena_user'); localStorage.removeItem('arena_sides');
+      user=null; debateSides={};
+      document.getElementById('reg-name').value=''; document.getElementById('reg-country').value=''; document.getElementById('reg-error').textContent='';
+      showRegister(); document.getElementById('main-tabs').style.display='none'; document.getElementById('masthead-user').style.display='none';
     }
   });
+  init();
 });
-
-// ── START ──
-init();
 </script>
 </body>
 </html>
