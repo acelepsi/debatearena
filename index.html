@@ -593,92 +593,49 @@
 
   /* ── NEW POST GLOW ── */
   @keyframes newGlow {
-    0%   { box-shadow: 0 0 0 0 rgba(29,107,71,0.0); border-color: var(--for); }
+    0%   { box-shadow: 0 0 0 0 rgba(29,107,71,0.0); border-color: var(--border); }
     25%  { box-shadow: 0 0 0 6px rgba(29,107,71,0.18); border-color: var(--for); }
     70%  { box-shadow: 0 0 0 3px rgba(29,107,71,0.08); border-color: var(--for); }
     100% { box-shadow: 0 0 0 0 rgba(29,107,71,0.0); border-color: var(--border); }
   }
-  .debate-card.has-new {
-    animation: newGlow 2.2s ease-out forwards;
-    border-color: var(--for);
-  }
+  .debate-card.has-new { animation: newGlow 2.2s ease-out forwards; }
   .new-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    background: var(--for);
-    color: white;
-    font-size: 9px;
-    font-family: var(--ff-mono);
-    font-weight: 500;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 99px;
-    margin-left: .5rem;
-    vertical-align: middle;
-    animation: newGlow 2.2s ease-out forwards;
+    display: inline-flex; align-items: center; gap: 3px;
+    background: var(--for); color: white;
+    font-size: 9px; font-family: var(--ff-mono); font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px;
+    margin-left: .5rem; vertical-align: middle;
   }
-  .new-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--for);
-    display: inline-block;
-  }
+  .new-dot { width: 6px; height: 6px; border-radius: 50%; background: white; display: inline-block; }
 
   /* ── LEADERBOARD ── */
   .leaderboard-list { display: flex; flex-direction: column; gap: .6rem; }
   .lb-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: .75rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: .75rem 1.25rem;
     transition: box-shadow .15s;
   }
   .lb-row:hover { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
-  .lb-rank {
-    font-family: var(--ff-head);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--muted);
-    min-width: 28px;
-    text-align: center;
-  }
+  .lb-rank { font-family: var(--ff-head); font-size: 1.1rem; font-weight: 700; color: var(--muted); min-width: 28px; text-align: center; }
   .lb-rank.gold   { color: #c9a84c; }
   .lb-rank.silver { color: #8a8a8a; }
   .lb-rank.bronze { color: #a0673a; }
   .lb-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--paper);
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--ink); color: var(--paper);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--ff-mono);
-    font-size: 12px;
-    font-weight: 500;
-    flex-shrink: 0;
+    font-family: var(--ff-mono); font-size: 12px; font-weight: 500; flex-shrink: 0;
   }
   .lb-info { flex: 1; min-width: 0; }
   .lb-name { font-weight: 500; font-size: 14px; }
   .lb-school { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lb-stats { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
-  .lb-count {
-    font-family: var(--ff-head);
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 1;
-  }
+  .lb-count { font-family: var(--ff-head); font-size: 1.3rem; font-weight: 700; color: var(--ink); line-height: 1; }
   .lb-count-label { font-size: 10px; color: var(--muted); font-family: var(--ff-mono); letter-spacing: .06em; text-transform: uppercase; }
   .lb-sides { display: flex; gap: .3rem; }
-  .lb-empty {
-    text-align: center; padding: 2.5rem;
-    color: var(--muted); font-size: 14px;
-    border: 1px dashed var(--border); border-radius: var(--radius);
-  }
+  .lb-empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 14px; border: 1px dashed var(--border); border-radius: var(--radius); }
 
   @media (max-width: 560px) {
     .form-row { grid-template-columns: 1fr; }
@@ -865,10 +822,9 @@ function init() {
   if (user) showApp(); else showRegister();
 }
 
-// Track argument counts per debate to detect new posts
 const prevArgCounts = {};
-const newDebates    = new Set(); // debate IDs with unseen new args
-let   listenersReady = false;    // suppress glow on initial load
+const newDebates    = new Set();
+let   listenersReady = false;
 
 function startListeners() {
   DEBATES.forEach(d => {
@@ -881,7 +837,6 @@ function startListeners() {
         argsCache[d.id][k] = { id:k, author:v.author, authorId:v.authorId, country:v.country, side:v.side, text:v.text, createdAt:v.createdAt };
       });
       const newCount = Object.keys(raw).length;
-      // Only glow if count grew AND we're past initial load AND user is looking at a different debate
       if (listenersReady && prevArgCounts[d.id] !== undefined && newCount > prevArgCounts[d.id] && currentDebateId !== d.id) {
         newDebates.add(d.id);
       }
@@ -891,7 +846,6 @@ function startListeners() {
     });
   });
   reflectionsRef().on('value', snap => { reflectionsCache = snap.val() || {}; renderBlog(); });
-  // Mark initial load as complete after a short delay
   setTimeout(() => { listenersReady = true; }, 3000);
 }
 
@@ -919,7 +873,7 @@ function renderDebates() {
     const againstCount = args.filter(a=>a.side==='against').length;
     const statusLabel = d.status==='open'?'Open':d.status==='reflection'?'Reflection':'Closed';
     const isNew = newDebates.has(d.id);
-    return `<div class="debate-card${isNew?' has-new':''}" id="dcard-${d.id}">
+    return `<div class="debate-card${isNew?' has-new':''}">
       <div class="debate-card-header"><div><div class="debate-num">Motion #${d.id}</div><div class="debate-title">${d.title}${isNew?'<span class="new-badge"><span class="new-dot"></span> New</span>':''}</div></div><div class="debate-status ${d.status}">${statusLabel}</div></div>
       <div class="debate-body"><div class="debate-desc">${d.description}</div>
       <div class="debate-meta"><span>🟢 ${forCount} for</span><span>🔴 ${againstCount} against</span><span>💬 ${args.length} arguments</span></div>
@@ -929,7 +883,7 @@ function renderDebates() {
 
 function openDebate(id, scrollToForm) {
   currentDebateId = id;
-  newDebates.delete(id); // clear glow when debate is opened
+  newDebates.delete(id);
   document.getElementById('debates-list-view').style.display  = 'none';
   document.getElementById('debate-detail-view').style.display = 'block';
   renderDebateDetail(id);
@@ -1056,16 +1010,14 @@ function renderLeaderboard() {
   const list = document.getElementById('leaderboard-list');
   if (!list) return;
 
-  // Tally arguments per author across all debates
-  const tally = {}; // authorId -> { name, country, forCount, againstCount }
+  // Group by "name|||school" so the same person across multiple sessions merges into one row
+  const tally = {};
   DEBATES.forEach(d => {
     Object.values(argsCache[d.id] || {}).forEach(a => {
-      if (!a.authorId) return;
-      if (!tally[a.authorId]) {
-        tally[a.authorId] = { name: a.author, country: a.country, forCount: 0, againstCount: 0 };
-      }
-      if (a.side === 'for')     tally[a.authorId].forCount++;
-      else if (a.side === 'against') tally[a.authorId].againstCount++;
+      const key = (a.author||'?') + '|||' + (a.country||'');
+      if (!tally[key]) tally[key] = { name: a.author, country: a.country, forCount: 0, againstCount: 0 };
+      if (a.side === 'for')      tally[key].forCount++;
+      else if (a.side === 'against') tally[key].againstCount++;
     });
   });
 
@@ -1074,16 +1026,15 @@ function renderLeaderboard() {
     .sort((a, b) => b.total - a.total);
 
   if (!rows.length) {
-    list.innerHTML = `<div class="lb-empty">No arguments posted yet. Be the first!</div>`;
+    list.innerHTML = `<div class="lb-empty">No arguments posted yet.</div>`;
     return;
   }
 
-  const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-  const rankSymbol = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
+  const rankClass  = i => ['gold','silver','bronze'][i] || '';
+  const rankSymbol = i => ['🥇','🥈','🥉'][i] || (i + 1);
 
   list.innerHTML = `<div class="leaderboard-list">` + rows.map((r, i) => {
     const initials = r.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dominantSide = r.forCount >= r.againstCount ? 'for' : 'against';
     return `<div class="lb-row">
       <div class="lb-rank ${rankClass(i)}">${rankSymbol(i)}</div>
       <div class="lb-avatar">${initials}</div>
